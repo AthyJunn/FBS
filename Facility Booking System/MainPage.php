@@ -342,7 +342,7 @@
                             <a href="customer/customerInfoForm.php" target="iframeStaff">
                                 <i class="fas fa-user-plus"></i> Add New Customer
                             </a>
-                            <a href="customer/customerList.php" target="iframeStaff">
+                            <a href="customer/customer.php" target="iframeStaff">
                                 <i class="fas fa-list"></i> View Customer List
                             </a>
                         </div>
@@ -377,7 +377,7 @@
                     </div>
                     <div class="card-content">
                         <p>Manage customer information, add new customers, or view the customer list.</p>
-                        <a href="customer/customerList.php" class="btn" target="iframeStaff">View Customers</a>
+                        <a href="customer/customer.php" class="btn" target="iframeStaff">View Customers</a>
                     </div>
                 </div>
                 
@@ -413,7 +413,7 @@
                         <h3>Quick Links</h3>
                         <p>
                             <a href="facility/facilityList.php" style="color: white; text-decoration: none;">Facilities</a><br>
-                            <a href="customer/customerList.php" style="color: white; text-decoration: none;">Customers</a><br>
+                            <a href="customer/customer.php" style="color: white; text-decoration: none;">Customers</a><br>
                             <a href="#" style="color: white; text-decoration: none;">Bookings</a>
                         </p>
                     </div>

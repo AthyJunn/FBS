@@ -421,12 +421,12 @@
                         <h3>Contact Us</h3>
                         <p>
                             <i class="fas fa-envelope"></i> support@facilitybooking.com<br>
-                            <i class="fas fa-phone"></i> +1 (123) 456-7890
+                            <i class="fas fa-phone"></i> +60 (10) 123-4567
                         </p>
                     </div>
                 </div>
                 <div class="footer-bottom">
-                    <p>&copy; 2023 Facility Booking System. All rights reserved.</p>
+                    <p>&copy; 2025 Facility Booking System. All rights reserved.</p>
                 </div>
             </div>
         </footer>

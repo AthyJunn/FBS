@@ -372,8 +372,8 @@
                                 echo '<td>' . $row['Sex'] . '</td>';
                                 
                                 echo '<td class="action-buttons">
-                                        <form method="POST" action="updateCustomerForm.php" style="display:inline;">
-                                            <input type="hidden" name="customerId" value="' . $row['customerID'] . '">
+                                        <form method="POST" action="updateCustomer.php" style="display:inline;">
+                                            <input type="hidden" name="customerID" value="' . $row['customerID'] . '">
                                             <button type="submit" class="btn btn-update">
                                                 <i class="fas fa-edit"></i> Update
                                             </button>

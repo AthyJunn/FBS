@@ -49,7 +49,7 @@
                 echo "<label>Payment Method:</label><br>";
                 echo "<select name='PayMethod'>";
                 echo $PayMethod == 'Cash' ? "<option value='Cash' selected>Cash</option>" : "<option value='Cash'>Cash</option>";
-                echo $PayMethod == 'Credit Card' ? "<option value='Credit Card' selected>Credit Card</option>" : "<option value='Credit Card'>Credit Card</option>";
+                echo $PayMethod == 'Credit/Debit Card' ? "<option value='Credit/Debit Card' selected>Credit/Debit Card</option>" : "<option value='Credit/Debit Card'>Credit/Debit Card</option>";
                 echo $PayMethod == 'Bank Transfer' ? "<option value='Bank Transfer' selected>Bank Transfer</option>" : "<option value='Bank Transfer'>Bank Transfer</option>";
                 echo "</select><br>";
 

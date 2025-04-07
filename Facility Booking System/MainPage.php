@@ -347,6 +347,19 @@
                             </a>
                         </div>
                     </li>
+
+                    <!-- Booking Information Dropdown -->
+                    <li class="dropdown">
+                        <a href="#">
+                            <i class="fas fa-calendar-alt"></i> Booking Information
+                            <i class="fas fa-chevron-down" style="margin-left: 5px; font-size: 0.8rem;"></i>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="rental/bookingListForm.php" target="iframeStaff">
+                                <i class="fas fa-list"></i> View Booking List
+                            </a>
+                        </div>
+                    </li>
                 </ul>
             </div>
         </nav>
@@ -390,7 +403,7 @@
                     </div>
                     <div class="card-content">
                         <p>View and manage facility bookings, check availability, and process reservations.</p>
-                        <a href="#" class="btn" target="iframeStaff">View Bookings</a>
+                        <a href="rental/bookingListForm.php" class="btn" target="iframeStaff">View Bookings</a>
                     </div>
                 </div>
             </div>

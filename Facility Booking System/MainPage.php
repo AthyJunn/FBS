@@ -373,7 +373,7 @@
                         <div class="card-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <h3 class="card-title">customer</h3>
+                        <h3 class="card-title">Customer</h3>
                     </div>
                     <div class="card-content">
                         <p>Manage customer information, add new customer, or view the customer list.</p>

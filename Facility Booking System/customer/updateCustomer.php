@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Update Customer</title>
+    <title>Update Customer Information</title>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -47,6 +47,7 @@
             margin: 0;
             display: flex;
             align-items: center;
+            text-align: center;
         }
         
         .page-title i {
@@ -89,6 +90,11 @@
             outline: none;
         }
         
+        .form-input[readonly] {
+            background-color: #f9f9f9;
+            cursor: not-allowed;
+        }
+        
         .form-textarea {
             width: 100%;
             padding: 12px 15px;
@@ -102,6 +108,22 @@
         }
         
         .form-textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            background-color: white;
+        }
+        
+        .form-select:focus {
             border-color: var(--primary-color);
             outline: none;
         }
@@ -146,6 +168,18 @@
             background-color: #ddd;
         }
         
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         /* Responsive Styles */
         @media (max-width: 768px) {
             .form-actions {
@@ -168,23 +202,22 @@
         </div>
         
         <?php
-        include_once "customer.php";
-        
-        // Check if customer ID is provided
-        if (isset($_POST['customerId'])) {
-            $customerId = $_POST['customerId'];
-            $customerInfo = getCustomerInformation($customerId);
-            
+        include "customer.php";
+
+        if (isset($_POST['customerID'])) {
+            $customerID = $_POST['customerID'];
+            $customerInfo = getCustomerInformation($customerID);
+
             if ($customerInfo) {
                 $customerID = $customerInfo['customerID'];
-                $customerName = $customerInfo['customerName'];
+                $name = $customerInfo['customerName'];
                 $email = $customerInfo['Email'];
-                $contact = $customerInfo['Contact'];
+                $phone = $customerInfo['Contact'];
                 $address = $customerInfo['Address'];
                 $state = $customerInfo['State'];
                 $postCode = $customerInfo['PostCode'];
-                $payMethod = $customerInfo['PayMethod'];
-                $sex = $customerInfo['Sex'];
+                $PayMethod = $customerInfo['PayMethod'];
+                $Sex = $customerInfo['Sex'];
                 ?>
                 
                 <!-- Customer Form -->
@@ -192,26 +225,22 @@
                     <form action="processCustomer.php" method="POST">
                         <div class="form-group">
                             <label for="customerID" class="form-label">Customer ID</label>
-                            <input type="text" id="customerID" name="customerID" class="form-input" 
-                                   value="<?php echo $customerID; ?>" readonly>
+                            <input type="text" id="customerID" name="customerID" value="<?php echo $customerID; ?>" class="form-input" readonly>
                         </div>
                         
                         <div class="form-group">
                             <label for="customerName" class="form-label">Customer Name</label>
-                            <input type="text" id="customerName" name="customerName" class="form-input" 
-                                   value="<?php echo $customerName; ?>" required>
+                            <input type="text" id="customerName" name="customerName" value="<?php echo $name; ?>" class="form-input" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="Email" class="form-label">Email Address</label>
-                            <input type="email" id="Email" name="Email" class="form-input" 
-                                   value="<?php echo $email; ?>" required>
+                            <input type="email" id="Email" name="Email" value="<?php echo $email; ?>" class="form-input" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="Contact" class="form-label">Phone Number</label>
-                            <input type="tel" id="Contact" name="Contact" class="form-input" 
-                                   value="<?php echo $contact; ?>" required>
+                            <input type="tel" id="Contact" name="Contact" value="<?php echo $phone; ?>" class="form-input" required>
                         </div>
                         
                         <div class="form-group">
@@ -221,31 +250,31 @@
                         
                         <div class="form-group">
                             <label for="State" class="form-label">State</label>
-                            <input type="text" id="State" name="State" class="form-input" 
-                                   value="<?php echo $state; ?>" required>
+                            <input type="text" id="State" name="State" value="<?php echo $state; ?>" class="form-input" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="PostCode" class="form-label">Post Code</label>
-                            <input type="text" id="PostCode" name="PostCode" class="form-input" 
-                                   value="<?php echo $postCode; ?>" required>
+                            <input type="text" id="PostCode" name="PostCode" value="<?php echo $postCode; ?>" class="form-input" required>
                         </div>
                         
                         <div class="form-group">
                             <label for="PayMethod" class="form-label">Payment Method</label>
-                            <select id="PayMethod" name="PayMethod" class="form-input" required>
-                                <option value="Cash" <?php echo ($payMethod == 'Cash') ? 'selected' : ''; ?>>Cash</option>
-                                <option value="Credit Card" <?php echo ($payMethod == 'Credit Card') ? 'selected' : ''; ?>>Credit Card</option>
-                                <option value="Bank Transfer" <?php echo ($payMethod == 'Bank Transfer') ? 'selected' : ''; ?>>Bank Transfer</option>
+                            <select id="PayMethod" name="PayMethod" class="form-select" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="Cash" <?php echo ($PayMethod == 'Cash') ? 'selected' : ''; ?>>Cash</option>
+                                <option value="Credit/Debit Card" <?php echo ($PayMethod == 'Credit/Debit Card') ? 'selected' : ''; ?>>Credit/Debit Card</option>
+                                <option value="Bank Transfer" <?php echo ($PayMethod == 'Bank Transfer') ? 'selected' : ''; ?>>Bank Transfer</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="Sex" class="form-label">Sex</label>
-                            <select id="Sex" name="Sex" class="form-input" required>
-                                <option value="Male" <?php echo ($sex == 'Male') ? 'selected' : ''; ?>>Male</option>
-                                <option value="Female" <?php echo ($sex == 'Female') ? 'selected' : ''; ?>>Female</option>
-                                <option value="Other" <?php echo ($sex == 'Other') ? 'selected' : ''; ?>>Other</option>
+                            <select id="Sex" name="Sex" class="form-select" required>
+                                <option value="">Select Sex</option>
+                                <option value="Male" <?php echo ($Sex == 'Male') ? 'selected' : ''; ?>>Male</option>
+                                <option value="Female" <?php echo ($Sex == 'Female') ? 'selected' : ''; ?>>Female</option>
+                                <option value="Other" <?php echo ($Sex == 'Other') ? 'selected' : ''; ?>>Other</option>
                             </select>
                         </div>
                         
@@ -254,27 +283,37 @@
                                 <i class="fas fa-times"></i> Cancel
                             </a>
                             <button type="submit" name="saveUpdateButton" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save
+                                <i class="fas fa-save"></i> Save Changes
                             </button>
                         </div>
                     </form>
                 </div>
                 <?php
             } else {
-                echo '<div class="w3-panel w3-red">
-                        <h3>Error</h3>
-                        <p>Customer not found. Please return to the customer list.</p>
-                        <p><a href="customerList.php" class="w3-button w3-white w3-border">Return to Customer List</a></p>
-                      </div>';
+                ?>
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> Customer not found.
+                </div>
+                <div class="form-actions">
+                    <a href="customerList.php" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Customer List
+                    </a>
+                </div>
+                <?php
             }
         } else {
-            echo '<div class="w3-panel w3-red">
-                    <h3>Error</h3>
-                    <p>No customer ID provided. Please return to the customer list.</p>
-                    <p><a href="customerList.php" class="w3-button w3-white w3-border">Return to Customer List</a></p>
-                  </div>';
+            ?>
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> No customer ID provided.
+            </div>
+            <div class="form-actions">
+                <a href="customerList.php" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Customer List
+                </a>
+            </div>
+            <?php
         }
         ?>
     </div>
 </body>
-</html> 
+</html>

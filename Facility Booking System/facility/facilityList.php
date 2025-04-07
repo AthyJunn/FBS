@@ -157,6 +157,11 @@
                 color: var(--maintenance-color);
             }
             
+            .status-unavailable {
+                background-color: rgb(255, 185, 185);
+                color: rgb(255, 25, 0);
+            }
+            
             /* Action Button Styles */
             .action-buttons {
                 display: flex;
@@ -359,7 +364,12 @@
                         
                         //add a row to display for each record
                         while ($row = mysqli_fetch_assoc($facilityListQry)) {
-                            $statusClass = $row['status'] == 'Available' ? 'status-available' : 'status-maintenance';
+                            $statusClass = 'status-maintenance'; // default
+                            if ($row['status'] == 'Available') {
+                                $statusClass = 'status-available';
+                            } else if ($row['status'] == 'Unavailable') {
+                                $statusClass = 'status-unavailable';
+                            }
                             
                             echo '<tr>';
                                 echo '<td>' . $count . '</td>';

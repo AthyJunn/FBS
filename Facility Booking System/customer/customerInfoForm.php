@@ -106,6 +106,22 @@
                 outline: none;
             }
             
+            .form-select {
+                width: 100%;
+                padding: 12px 15px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 1rem;
+                transition: border-color 0.3s ease;
+                box-sizing: border-box;
+                background-color: white;
+            }
+            
+            .form-select:focus {
+                border-color: var(--primary-color);
+                outline: none;
+            }
+            
             .form-actions {
                 display: flex;
                 justify-content: flex-end;
@@ -172,43 +188,53 @@
             <div class="form-container">
                 <form action="processCustomer.php" method="POST">
                     <div class="form-group">
-                        <label for="name" class="form-label">Customer Name</label>
-                        <input type="text" id="name" name="name" class="form-input" required>
+                        <label for="customerName" class="form-label">Customer Name</label>
+                        <input type="text" id="customerName" name="customerName" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" id="email" name="email" class="form-input" required>
+                        <label for="Email" class="form-label">Email Address</label>
+                        <input type="email" id="Email" name="Email" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="phone" class="form-label">Phone Number</label>
-                        <input type="tel" id="phone" name="phone" class="form-input" required>
+                        <label for="Contact" class="form-label">Phone Number</label>
+                        <input type="tel" id="Contact" name="Contact" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="address" class="form-label">Address</label>
-                        <textarea id="address" name="address" class="form-textarea" required></textarea>
+                        <label for="Address" class="form-label">Address</label>
+                        <textarea id="Address" name="Address" class="form-textarea" required></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="state" class="form-label">State</label>
-                        <textarea id="state" name="state" class="form-textarea" required></textarea>
+                        <label for="State" class="form-label">State</label>
+                        <input type="text" id="State" name="State" class="form-input" required>
                     </div>
-
+                    
                     <div class="form-group">
-                        <label for="contact" class="form-label">Contact</label>
-                        <textarea id="contact" name="contact" class="form-textarea" required></textarea>
+                        <label for="PostCode" class="form-label">Post Code</label>
+                        <input type="text" id="PostCode" name="PostCode" class="form-input" required>
                     </div>
 
                     <div class="form-group">
                         <label for="PayMethod" class="form-label">Payment Method</label>
-                        <textarea id="PayMethod" name="PayMethod" class="form-textarea" required></textarea>
+                        <select id="PayMethod" name="PayMethod" class="form-select" required>
+                            <option value="">Select Payment Method</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Card">Credit/Debit Card</option>
+                            <option value="Transfer">Bank Transfer</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
                         <label for="Sex" class="form-label">Sex</label>
-                        <textarea id="Sex" name="Sex" class="form-textarea" required></textarea>
+                        <select id="Sex" name="Sex" class="form-select" required>
+                            <option value="">Select Sex</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
                     </div>
                     
                     <div class="form-actions">

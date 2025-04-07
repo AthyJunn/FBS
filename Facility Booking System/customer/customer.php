@@ -33,7 +33,7 @@ function getListOfCustomer($searchQuery = "") {
     
     //Apply search filter if keyword exists
     if (!empty($searchQuery)) {
-        $sql .= " WHERE name LIKE '%$searchQuery%' OR email LIKE '%$searchQuery%' OR phone LIKE '%$searchQuery%'";
+        $sql .= " WHERE customerName LIKE '%$searchQuery%' OR Email LIKE '%$searchQuery%' OR Contact LIKE '%$searchQuery%'";
     }
     
     return mysqli_query($con, $sql);
@@ -48,7 +48,13 @@ function addCustomer() {
         exit;
     }
 
-    $customerID = $_POST['customerID'];
+    // Generate a unique customerID
+    $sql = "SELECT MAX(CAST(SUBSTRING(customerID, 2) AS UNSIGNED)) as max_id FROM customer";
+    $result = mysqli_query($con, $sql);
+    $row = mysqli_fetch_assoc($result);
+    $next_id = $row['max_id'] + 1;
+    $customerID = 'C' . str_pad($next_id, 4, '0', STR_PAD_LEFT);
+
     $customerName = $_POST['customerName'];
     $Email = $_POST['Email'];
     $Contact = $_POST['Contact'];

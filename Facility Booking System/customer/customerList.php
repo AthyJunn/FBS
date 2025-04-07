@@ -345,9 +345,9 @@
                             <th>Name</th>
                             <th>Address</th>
                             <th>State</th>
-                            <th>PostCode</th>
+                            <th>Postal Code</th>
                             <th>Contact</th>
-                            <th>PayMethod</th>
+                            <th>Payment Method</th>
                             <th>Email</th>
                             <th>Sex</th>
                             <th>Actions</th>

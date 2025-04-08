@@ -299,7 +299,7 @@
                     <span>Facility Booking System</span>
                 </div>
                 <div>
-                    <a href="login/logout.php" class="btn btn-danger" target="iframeStaff">
+                    <a href="login/logout.php" class="btn btn-danger">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 </div>

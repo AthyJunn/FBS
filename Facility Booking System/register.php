@@ -132,6 +132,72 @@
     </style>
 </head>
 <body>
+    <?php
+    // Database connection
+    $con = mysqli_connect('localhost', 'web2025', 'web2025', 'facilitydb');
+    
+    // Check connection
+    if (!$con) {
+        die("Connection Error: " . mysqli_connect_error());
+    }
+    
+    // Process registration form submission
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register'])) {
+        $username = mysqli_real_escape_string($con, $_POST['username']);
+        $Email = mysqli_real_escape_string($con, $_POST['Email']);
+        $password = $_POST['password'];
+        $confirmPassword = $_POST['confirmPassword'];
+        
+        // Validate password match
+        if ($password !== $confirmPassword) {
+            $error = "Passwords do not match!";
+        } 
+        // Validate password length
+        elseif (strlen($password) < 6) {
+            $error = "Password must be at least 6 characters long!";
+        }
+        // Validate email format
+        elseif (!filter_var($Email, FILTER_VALIDATE_EMAIL)) {
+            $error = "Please enter a valid email address!";
+        }
+        else {
+            // Check if email already exists in customer table
+            $checkEmailQuery = "SELECT * FROM customer WHERE Email = ?";
+            $checkEmailStmt = mysqli_prepare($con, $checkEmailQuery);
+            mysqli_stmt_bind_param($checkEmailStmt, "s", $Email);
+            mysqli_stmt_execute($checkEmailStmt);
+            $checkEmailResult = mysqli_stmt_get_result($checkEmailStmt);
+            
+            if (mysqli_num_rows($checkEmailResult) > 0) {
+                $error = "Email already registered. Please use another email.";
+            } else {
+                // Hash password
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+                
+                // Get the next customerID in C0001 format
+                $idQuery = "SELECT MAX(CAST(SUBSTRING(customerID, 2) AS UNSIGNED)) as maxID FROM customer";
+                $idResult = mysqli_query($con, $idQuery);
+                $idRow = mysqli_fetch_assoc($idResult);
+                $nextID = $idRow['maxID'] + 1;
+                $formattedID = 'C' . str_pad($nextID, 4, '0', STR_PAD_LEFT);
+                
+                // Insert new customer
+                $insertQuery = "INSERT INTO customer (customerID, customerName, Email, cPassword) VALUES (?, ?, ?, ?)";
+                $insertStmt = mysqli_prepare($con, $insertQuery);
+                mysqli_stmt_bind_param($insertStmt, "ssss", $formattedID, $username, $Email, $hashedPassword);
+                
+                if (mysqli_stmt_execute($insertStmt)) {
+                    // Registration successful, redirect to login page
+                    header("Location: index.php?success=1");
+                    exit();
+                } else {
+                    $error = "Registration failed. Please try again.";
+                }
+            }
+        }
+    }
+    ?>
+    
     <div class="register-container">
         <h1 class="system-title">
             <i class="fas fa-user-plus"></i>
@@ -139,44 +205,28 @@
         </h1>
         
         <?php
-        if (isset($_GET['error'])) {
+        if (isset($error)) {
             echo '<div class="error-message">
                     <i class="fas fa-exclamation-circle"></i> ' . 
-                    htmlspecialchars($_GET['error']) . 
+                    htmlspecialchars($error) . 
                   '</div>';
         }
         ?>
 
-        <form action="processRegistration.php" method="POST" id="registrationForm" onsubmit="return validateForm()">
+        <form method="POST" id="registrationForm" onsubmit="return validateForm()">
             <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <div class="input-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" id="fullName" name="fullName" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <div class="input-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" id="email" name="email" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <div class="input-icon">
-                    <i class="fas fa-phone"></i>
-                    <input type="tel" id="phone" name="phone" required>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="username">Username</label>
+                <label for="username">Full Name</label>
                 <div class="input-icon">
                     <i class="fas fa-user-circle"></i>
                     <input type="text" id="username" name="username" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="Email">Email Address</label>
+                <div class="input-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="Email" name="Email" required>
                 </div>
             </div>
 
@@ -196,7 +246,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn">
+            <button type="submit" name="register" class="btn">
                 <i class="fas fa-user-plus"></i> Register
             </button>
         </form>
@@ -211,8 +261,7 @@
         function validateForm() {
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            const phone = document.getElementById('phone').value;
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('Email').value;
 
             // Password validation
             if (password !== confirmPassword) {
@@ -222,13 +271,6 @@
 
             if (password.length < 6) {
                 alert('Password must be at least 6 characters long!');
-                return false;
-            }
-
-            // Phone number validation
-            const phoneRegex = /^[0-9-+()]{10,15}$/;
-            if (!phoneRegex.test(phone)) {
-                alert('Please enter a valid phone number!');
                 return false;
             }
 

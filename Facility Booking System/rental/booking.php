@@ -398,4 +398,25 @@ function checkCustomerExists($customerID) {
     
     return ['exists' => false];
 }
+
+// Function to get facilities rented by customer
+function getFacilitiesRentedByCustomer($customerId) {
+    global $con;
+    
+    $query = "SELECT DISTINCT f.facilityID, f.name as facilityName, f.category, f.ratePerDay,
+                     COUNT(b.Booking_Ref) as totalBookings,
+                     SUM(CASE WHEN b.bookingStatus = 'Confirmed' THEN 1 ELSE 0 END) as confirmedBookings,
+                     MAX(b.DateRent_end) as lastRentDate
+              FROM facility f
+              JOIN booking b ON f.facilityID = b.facilityID
+              WHERE b.customerID = ?
+              GROUP BY f.facilityID, f.name, f.category, f.ratePerDay
+              ORDER BY lastRentDate DESC";
+    
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, "s", $customerId);
+    mysqli_stmt_execute($stmt);
+    
+    return mysqli_stmt_get_result($stmt);
+}
 ?> 

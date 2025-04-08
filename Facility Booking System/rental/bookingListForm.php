@@ -10,12 +10,34 @@ $con = mysqli_connect('localhost', 'web2025', 'web2025', 'facilitydb');
 $facilitiesQuery = "SELECT facilityID, name FROM facility ORDER BY name";
 $facilitiesResult = mysqli_query($con, $facilitiesQuery);
 
+// Get list of customers for staff
+$customersQuery = "SELECT customerID, customerName FROM customer ORDER BY customerName";
+$customersResult = mysqli_query($con, $customersQuery);
+
 // Get selected facility (if any)
 $selectedFacility = $_GET['facility'] ?? '';
 $customers = [];
 
 if ($isStaff && !empty($selectedFacility)) {
     $customers = getCustomersByFacility($selectedFacility);
+}
+
+// Get selected customer (if any)
+$selectedCustomer = $_GET['customer'] ?? '';
+$customerFacilities = [];
+
+if (!empty($selectedCustomer)) {
+    $customerFacilities = getFacilitiesRentedByCustomer($selectedCustomer);
+}
+
+// Get customer details if selected
+$customerDetails = null;
+if (!empty($selectedCustomer)) {
+    $customerQuery = "SELECT * FROM customer WHERE customerID = ?";
+    $stmt = mysqli_prepare($con, $customerQuery);
+    mysqli_stmt_bind_param($stmt, "s", $selectedCustomer);
+    mysqli_stmt_execute($stmt);
+    $customerDetails = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
 }
 ?>
 <!DOCTYPE html>
@@ -272,7 +294,7 @@ if ($isStaff && !empty($selectedFacility)) {
         ?>
         
         <?php if ($isStaff): ?>
-        <!-- Facility Filter for Staff -->
+        <!-- Facility and Customer Filter for Staff -->
         <div class="search-container" style="margin-bottom: 30px;">
             <form action="" method="GET" style="width: 100%; display: flex; gap: 10px;">
                 <select name="facility" class="search-input" style="flex: 1;">
@@ -286,6 +308,28 @@ if ($isStaff && !empty($selectedFacility)) {
                 </select>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-filter"></i> View Customers
+                </button>
+            </form>
+        </div>
+
+        <!-- Customer Selection -->
+        <div class="search-container" style="margin-bottom: 30px;">
+            <form action="" method="GET" style="width: 100%; display: flex; gap: 10px;">
+                <select name="customer" class="search-input" style="flex: 1;">
+                    <option value="">Select a customer to view facilities...</option>
+                    <?php 
+                    // Reset the customers result pointer
+                    mysqli_data_seek($customersResult, 0);
+                    while ($customer = mysqli_fetch_assoc($customersResult)): 
+                    ?>
+                    <option value="<?php echo $customer['customerID']; ?>" 
+                            <?php echo $selectedCustomer == $customer['customerID'] ? 'selected' : ''; ?>>
+                        <?php echo $customer['customerName']; ?>
+                    </option>
+                    <?php endwhile; ?>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> View Facilities
                 </button>
             </form>
         </div>
@@ -321,6 +365,76 @@ if ($isStaff && !empty($selectedFacility)) {
         <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-bottom: 30px;">
             <i class="fas fa-info-circle"></i> No customers found for this facility.
         </div>
+        <?php endif; ?>
+
+        <?php if ($customerDetails): ?>
+        <!-- Customer Information -->
+        <div class="customer-info" style="margin-bottom: 30px;">
+            <h2 style="color: var(--dark-color); font-size: 1.5rem; margin-bottom: 15px;">
+                <i class="fas fa-user"></i> Customer Information
+            </h2>
+            <div class="customer-details">
+                <div class="detail-item">
+                    <span class="detail-label">Customer ID</span>
+                    <span class="detail-value"><?php echo $customerDetails['customerID']; ?></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value"><?php echo $customerDetails['customerName']; ?></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Contact</span>
+                    <span class="detail-value"><?php echo $customerDetails['Contact']; ?></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value"><?php echo $customerDetails['Email']; ?></span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Payment Method</span>
+                    <span class="detail-value"><?php echo $customerDetails['PayMethod']; ?></span>
+                </div>
+            </div>
+        </div>
+
+        <?php if (mysqli_num_rows($customerFacilities) > 0): ?>
+        <!-- Customer Facilities Table -->
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--dark-color); font-size: 1.5rem; margin-bottom: 15px;">
+                <i class="fas fa-building"></i> Facilities Rented by Customer
+            </h2>
+            <table class="booking-table">
+                <thead>
+                    <tr>
+                        <th>Facility ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Rate Per Day</th>
+                        <th>Total Bookings</th>
+                        <th>Confirmed Bookings</th>
+                        <th>Last Rent Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($facility = mysqli_fetch_assoc($customerFacilities)): ?>
+                    <tr>
+                        <td><?php echo $facility['facilityID']; ?></td>
+                        <td><?php echo $facility['facilityName']; ?></td>
+                        <td><?php echo $facility['category']; ?></td>
+                        <td>$<?php echo number_format($facility['ratePerDay'], 2); ?></td>
+                        <td><?php echo $facility['totalBookings']; ?></td>
+                        <td><?php echo $facility['confirmedBookings']; ?></td>
+                        <td><?php echo date('M j, Y', strtotime($facility['lastRentDate'])); ?></td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-bottom: 30px;">
+            <i class="fas fa-info-circle"></i> This customer has not rented any facilities yet.
+        </div>
+        <?php endif; ?>
         <?php endif; ?>
         <?php endif; ?>
         

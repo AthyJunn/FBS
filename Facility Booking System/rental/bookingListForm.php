@@ -240,7 +240,17 @@
                                 ?>
                             </td>
                             <td><?php echo $booking['RentalPeriod']; ?> days</td>
-                            <td>$<?php echo number_format($booking['Amount_Due'], 2); ?></td>
+                            <td>$<?php 
+                                // Check which column name exists for amount due
+                                if (isset($booking['amountDue'])) {
+                                    echo number_format($booking['amountDue'], 2);
+                                } elseif (isset($booking['Amount_Due'])) {
+                                    echo number_format($booking['Amount_Due'], 2);
+                                } else {
+                                    // Calculate amount based on rental period and facility rate if available
+                                    echo "N/A";
+                                }
+                            ?></td>
                             <td>
                                 <span class="payment-badge payment-<?php echo $booking['Paid'] ? 'paid' : 'unpaid'; ?>">
                                     <?php echo $booking['Paid'] ? 'Paid' : 'Unpaid'; ?>

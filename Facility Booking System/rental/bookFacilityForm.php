@@ -218,7 +218,22 @@
 
         // Display error/success messages
         if (isset($_GET['error'])) {
-            echo '<div class="error-message"><i class="fas fa-exclamation-circle"></i> ' . htmlspecialchars($_GET['message']) . '</div>';
+            $errorMessage = "";
+            switch ($_GET['error']) {
+                case 1:
+                    $errorMessage = "Failed to create booking. Please try again.";
+                    break;
+                case 2:
+                    $errorMessage = isset($_GET['message']) ? $_GET['message'] : "Customer not found. Please check the customer ID.";
+                    break;
+                case 3:
+                    $errorMessage = isset($_GET['message']) ? $_GET['message'] : "Customer or facility not found. Please check your input.";
+                    break;
+                default:
+                    $errorMessage = "An error occurred. Please try again.";
+                    break;
+            }
+            echo '<div class="alert alert-danger">' . $errorMessage . '</div>';
         }
         if (isset($_GET['success'])) {
             echo '<div class="success-message"><i class="fas fa-check-circle"></i> ' . htmlspecialchars($_GET['message']) . '</div>';
@@ -342,10 +357,17 @@
             <div class="form-group">
                 <label for="customerID">Customer ID:</label>
                 <div class="input-group">
-                    <input type="text" id="customerID" name="customerID" required>
-                    <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round" style="margin-left: 10px;">
-                        <i class="fas fa-search"></i> Check
-                    </button>
+                    <?php if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer'): ?>
+                        <input type="text" id="customerID" name="customerID" value="<?php echo htmlspecialchars($_SESSION['customerID']); ?>" readonly>
+                        <button type="button" class="w3-button w3-blue w3-round" style="margin-left: 10px;" disabled>
+                            <i class="fas fa-search"></i> Check
+                        </button>
+                    <?php else: ?>
+                        <input type="text" id="customerID" name="customerID" required>
+                        <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round" style="margin-left: 10px;">
+                            <i class="fas fa-search"></i> Check
+                        </button>
+                    <?php endif; ?>
                 </div>
                 <div id="customerInfo" class="w3-panel w3-pale-blue w3-round" style="display: none; margin-top: 10px;">
                     <p id="customerDetails"></p>
@@ -415,27 +437,11 @@
                 <input type="hidden" id="modalFacilityId" name="facilityID">
                 <input type="hidden" id="regNumber" name="regNumber">
                 <input type="hidden" id="rentalPeriodInput" name="RentalPeriod">
-                <input type="hidden" id="amountDueInput" name="Amount_Due">
+                <input type="hidden" name="submitBooking" value="1">
                 
                 <div class="form-group">
                     <label for="Booking_Ref">Booking Reference:</label>
                     <input type="text" id="Booking_Ref" name="Booking_Ref" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="customerID">Customer ID:</label>
-                    <div class="input-group">
-                        <input type="text" id="customerID" name="customerID" required>
-                        <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round" style="margin-left: 10px;">
-                            <i class="fas fa-search"></i> Check
-                        </button>
-                    </div>
-                    <div id="customerInfo" class="w3-panel w3-pale-blue w3-round" style="display: none; margin-top: 10px;">
-                        <p id="customerDetails"></p>
-                    </div>
-                    <div id="customerError" class="w3-panel w3-pale-red w3-round" style="display: none; margin-top: 10px;">
-                        <p><i class="fas fa-exclamation-circle"></i> Customer ID not found.</p>
-                    </div>
                 </div>
 
                 <div class="form-group">
@@ -457,7 +463,6 @@
 
                 <div class="rental-summary">
                     <p>Rental Period: <span id="rentalPeriod">0</span> days</p>
-                    <p>Amount Due: RM<span id="amountDue">0.00</span></p>
                     <p>Registration Number: <span id="displayRegNumber">Will be auto-generated</span></p>
                 </div>
 
@@ -501,20 +506,11 @@
         }
 
         let currentFacilityRate = 0;
-        let isValidCustomer = false;
 
         function validateForm() {
             // Update hidden fields before submission
             const rentalPeriod = document.getElementById('rentalPeriod').textContent;
-            const amountDue = document.getElementById('amountDue').textContent;
             document.getElementById('rentalPeriodInput').value = rentalPeriod;
-            document.getElementById('amountDueInput').value = amountDue;
-
-            // Check if customer is validated
-            if (!isValidCustomer) {
-                alert('Please validate the Customer ID first');
-                return false;
-            }
 
             // Check if dates are selected
             const startDate = document.getElementById('DateRent_start').value;
@@ -534,73 +530,6 @@
             return true;
         }
 
-        function validateCustomer() {
-    const customerID = document.getElementById('customerID').value;
-    if (!customerID) {
-        alert('Please enter a Customer ID');
-        return;
-    }
-
-    // Create form data
-    const formData = new FormData();
-    formData.append('action', 'checkCustomer');
-    formData.append('customerID', customerID);
-
-    // Send POST request
-    fetch('processBooking.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.json();
-    })
-    .then(result => {
-        const customerInfo = document.getElementById('customerInfo');
-        const customerError = document.getElementById('customerError');
-        const reservedByInput = document.getElementById('reservedBy');
-
-        if (result.exists) {
-            customerInfo.style.display = 'block';
-            customerError.style.display = 'none';
-            document.getElementById('customerDetails').innerHTML = `
-                <p><strong>Customer Name:</strong> ${result.customerName}</p>
-                <p><strong>Contact:</strong> ${result.Contact}</p>
-                <p><strong>Email:</strong> ${result.Email}</p>
-            `;
-            isValidCustomer = true;
-            
-            // Auto-fill the reserved by field if it exists
-            if (reservedByInput) {
-                reservedByInput.value = result.customerName;
-            }
-        } else {
-            customerInfo.style.display = 'none';
-            customerError.style.display = 'block';
-            isValidCustomer = false;
-            
-            // Clear the reserved by field if it exists
-            if (reservedByInput) {
-                reservedByInput.value = '';
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('customerError').style.display = 'block';
-        document.getElementById('customerInfo').style.display = 'none';
-        isValidCustomer = false;
-        
-        // Clear the reserved by field if it exists
-        const reservedByInput = document.getElementById('reservedBy');
-        if (reservedByInput) {
-            reservedByInput.value = '';
-        }
-    });
-}
-
         function generateRegNumber() {
             return Math.floor(10000000 + Math.random() * 90000000).toString();
         }
@@ -618,14 +547,14 @@
             document.getElementById('regNumber').value = regNum;
             document.getElementById('displayRegNumber').textContent = regNum;
             
-            // Reset customer validation
-            isValidCustomer = false;
-            document.getElementById('submitBtn').disabled = true;
-            document.getElementById('customerInfo').style.display = 'none';
-            document.getElementById('customerError').style.display = 'none';
-            
             // Initialize date pickers
             initializeDatePickers();
+            
+            // If user is a customer, auto-fill customer details
+            <?php if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer'): ?>
+            document.getElementById('customerID').value = '<?php echo htmlspecialchars($_SESSION['customerID']); ?>';
+            document.getElementById('reservedBy').value = '<?php echo htmlspecialchars($_SESSION['username']); ?>';
+            <?php endif; ?>
         }
 
         function closeBookingModal() {
@@ -659,8 +588,6 @@
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 
                 document.getElementById('rentalPeriod').textContent = diffDays;
-                const amountDue = (diffDays * currentFacilityRate).toFixed(2);
-                document.getElementById('amountDue').textContent = amountDue;
             }
         }
 

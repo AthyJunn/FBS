@@ -10,10 +10,7 @@ if (!$con) {
 //Fetch booking list with optional search filter
 function getListOfBooking($searchQuery = "") {
     global $con;
-    $sql = "SELECT b.Booking_Ref, b.customerID, b.DateReserved, b.Reserved_By, 
-                   b.DateRent_start, b.DateRent_end, b.RentalPeriod, 
-                   b.facilityID, b.Amount_Due, b.Paid, b.bookingStatus,
-                   f.name as facilityName, c.customerName 
+    $sql = "SELECT b.*, f.name as facilityName, c.customerName 
             FROM booking b 
             JOIN facility f ON b.facilityID = f.facilityID 
             JOIN customer c ON b.customerID = c.customerID";
@@ -35,13 +32,49 @@ function getListOfBooking($searchQuery = "") {
 function addNewBookingRecord() {
     global $con;
     
+    // Start session if not already started
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
+    
     // Collect data from post array
-    $customerId = $_POST['customerID'];
     $facilityId = $_POST['facilityID'];
     $dateReserved = date("Y-m-d"); // Current date
-    $reservedBy = $customerId; // Same as customer ID
     $dateRentStart = $_POST['DateRent_start'];
     $dateRentEnd = $_POST['DateRent_end'];
+    
+    // Check if user is logged in as customer
+    if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer') {
+        $customerId = $_SESSION['customerID'];
+        $reservedBy = $_SESSION['username']; // Use the customer's name from session
+    } else {
+        $customerId = $_POST['customerID'];
+        $reservedBy = $_POST['Reserved_By'];
+    }
+    
+    // Check if customer exists
+    $customerQuery = "SELECT customerID FROM customer WHERE customerID = ?";
+    $stmt = mysqli_prepare($con, $customerQuery);
+    mysqli_stmt_bind_param($stmt, "s", $customerId);
+    mysqli_stmt_execute($stmt);
+    $customerResult = mysqli_stmt_get_result($stmt);
+    
+    if (mysqli_num_rows($customerResult) == 0) {
+        // Customer doesn't exist
+        return false;
+    }
+    
+    // Check if facility exists
+    $facilityQuery = "SELECT facilityID FROM facility WHERE facilityID = ?";
+    $stmt = mysqli_prepare($con, $facilityQuery);
+    mysqli_stmt_bind_param($stmt, "s", $facilityId);
+    mysqli_stmt_execute($stmt);
+    $facilityResult = mysqli_stmt_get_result($stmt);
+    
+    if (mysqli_num_rows($facilityResult) == 0) {
+        // Facility doesn't exist
+        return false;
+    }
     
     // Calculate rental period
     $start = new DateTime($dateRentStart);
@@ -58,19 +91,29 @@ function addNewBookingRecord() {
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
     $facility = mysqli_fetch_assoc($result);
-    $amountDue = $facility['ratePerDay'] * $rentalPeriod;
+    
+    // Check if facility exists and has a rate
+    if ($facility && isset($facility['ratePerDay'])) {
+        $amountDue = $facility['ratePerDay'] * $rentalPeriod;
+    } else {
+        // Default amount if facility not found or rate not set
+        $amountDue = 0;
+    }
+    
+    // Get registration number from form or generate one
+    $regNumber = isset($_POST['regNumber']) ? $_POST['regNumber'] : 'REG' . date('YmdHis');
     
     // Insert booking record
     $sql = "INSERT INTO booking (Booking_Ref, customerID, DateReserved, Reserved_By, 
                                 DateRent_start, DateRent_end, RentalPeriod, facilityID, 
-                                Amount_Due, Paid, bookingStatus) 
+                                regNumber, Paid, bookingStatus) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $paid = 0; // Default to unpaid
     $status = 'Pending'; // Default status
     
     $stmt = mysqli_prepare($con, $sql);
-    mysqli_stmt_bind_param($stmt, "ssssssissss", 
+    mysqli_stmt_bind_param($stmt, "sssssssssss", 
         $bookingRef,
         $customerId,
         $dateReserved,
@@ -79,7 +122,7 @@ function addNewBookingRecord() {
         $dateRentEnd,
         $rentalPeriod,
         $facilityId,
-        $amountDue,
+        $regNumber,
         $paid,
         $status
     );

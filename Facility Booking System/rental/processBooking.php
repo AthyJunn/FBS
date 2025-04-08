@@ -25,7 +25,19 @@ if (isset($_POST['submitBooking'])) {
     // Check if user is logged in as customer
     if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer') {
         // For logged-in customers, we don't need to check customer existence
-        // as we're using thecustomerID from the session
+        // as we're using the customerID from the session
+        $customerId = $_SESSION['customerID'];
+        
+        // Generate a unique booking reference
+        $datePrefix = date('Ymd');
+        $query = "SELECT MAX(SUBSTRING(Booking_Ref, -4)) as max_sequence 
+                 FROM booking 
+                 WHERE Booking_Ref LIKE 'BK" . $datePrefix . "%'";
+        $result = mysqli_query($con, $query);
+        $row = mysqli_fetch_assoc($result);
+        $sequence = str_pad((intval($row['max_sequence'] ?? '0') + 1), 4, '0', STR_PAD_LEFT);
+        $_POST['regNumber'] = 'BK' . $datePrefix . $sequence;
+        
         $result = addNewBookingRecord();
         
         if ($result) {
@@ -42,7 +54,17 @@ if (isset($_POST['submitBooking'])) {
         $customerId = $_POST['customerID'];
         $customerExists = checkCustomerExists($customerId);
         
-        if ($customerExists) {
+        if ($customerExists['exists']) {
+            // Generate a unique booking reference
+            $datePrefix = date('Ymd');
+            $query = "SELECT MAX(SUBSTRING(Booking_Ref, -4)) as max_sequence 
+                     FROM booking 
+                     WHERE Booking_Ref LIKE 'BK" . $datePrefix . "%'";
+            $result = mysqli_query($con, $query);
+            $row = mysqli_fetch_assoc($result);
+            $sequence = str_pad((intval($row['max_sequence'] ?? '0') + 1), 4, '0', STR_PAD_LEFT);
+            $_POST['regNumber'] = 'BK' . $datePrefix . $sequence;
+            
             // Add new booking record
             $result = addNewBookingRecord();
             

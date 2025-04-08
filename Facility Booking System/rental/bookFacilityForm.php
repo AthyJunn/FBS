@@ -1,3 +1,14 @@
+<?php
+include_once "../login/checkLogin.php";
+
+// Check if user is logged in
+if (!isLoggedIn()) {
+    header("Location: ../index.php");
+    exit();
+}
+
+$isStaff = isStaff();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -336,14 +347,13 @@
 
         <form action="processBooking.php" method="POST">
             <input type="hidden" name="facilityID" value="<?= htmlspecialchars($facilityId) ?>">
-            <input type="hidden" name="regNumber" value="<?= rand(10000000, 99999999) ?>">
-
+            
             <div class="form-group">
                 <label for="customerID">Customer ID:</label>
                 <div class="input-group">
-                    <?php if ($_SESSION['userType'] === 'customer'): ?>
-                        <input type="text" id="customerID" name="customerID" value="<?= htmlspecialchars($_SESSION['customerID']) ?>" readonly>
-                        <button class="w3-button w3-blue w3-round" disabled><i class="fas fa-search"></i> Check</button>
+                    <?php if (!$isStaff): ?>
+                        <input type="text" id="customerID" name="customerID" value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
+                        <button type="button" class="w3-button w3-blue w3-round" disabled><i class="fas fa-search"></i> Check</button>
                     <?php else: ?>
                         <input type="text" id="customerID" name="customerID" required>
                         <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round"><i class="fas fa-search"></i> Check</button>

@@ -402,6 +402,10 @@ $isStaff = isStaff();
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </form>';
+                                } else if ($row['status'] == 'Available') {
+                                    echo '<a href="../rental/bookFacilityForm.php?facilityId=' . $row['facilityId'] . '" class="btn btn-update">
+                                            <i class="fas fa-calendar-plus"></i> Book Now
+                                          </a>';
                                 }
                                 echo '</td>';
                             echo '</tr>';

@@ -255,6 +255,24 @@ function getBookingList($search = "") {
     return mysqli_query($conn, $query);
 }
 
+// Function to get customers by facility
+function getCustomersByFacility($facilityId) {
+    global $con;
+    
+    $query = "SELECT DISTINCT c.customerID, c.customerName, c.Contact, c.Email 
+              FROM booking b
+              JOIN customer c ON b.customerID = c.customerID
+              WHERE b.facilityID = ?
+              AND b.bookingStatus != 'Cancelled'
+              ORDER BY c.customerName";
+    
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, "s", $facilityId);
+    mysqli_stmt_execute($stmt);
+    
+    return mysqli_stmt_get_result($stmt);
+}
+
 // Function to get bookings by facility
 function getBookingsByFacility($facilityId) {
     global $conn;

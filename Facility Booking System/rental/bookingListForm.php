@@ -1,3 +1,40 @@
+<?php
+include_once("../login/checkLogin.php");
+$isStaff = isStaff();
+
+// Database connection
+$con = mysqli_connect('localhost', 'web2025', 'web2025', 'facilitydb');
+
+// Function to get customers by facility
+function getCustomersByFacility($facilityId) {
+    global $con;
+    
+    $query = "SELECT DISTINCT c.customerID, c.customerName, c.Contact, c.Email 
+              FROM booking b
+              JOIN customer c ON b.customerID = c.customerID
+              WHERE b.facilityID = ?
+              AND b.bookingStatus != 'Cancelled'
+              ORDER BY c.customerName";
+    
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, "s", $facilityId);
+    mysqli_stmt_execute($stmt);
+    
+    return mysqli_stmt_get_result($stmt);
+}
+
+// Get list of facilities
+$facilitiesQuery = "SELECT facilityID, name FROM facility ORDER BY name";
+$facilitiesResult = mysqli_query($con, $facilitiesQuery);
+
+// Get selected facility (if any)
+$selectedFacility = $_GET['facility'] ?? '';
+$customers = [];
+
+if ($isStaff && !empty($selectedFacility)) {
+    $customers = getCustomersByFacility($selectedFacility);
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -202,14 +239,20 @@
     </style>
 </head>
 <body>
+    <?php
+    include_once("../login/checkLogin.php");
+    $isStaff = isStaff();
+    ?>
     <div class="container">
         <div class="header">
             <h1 class="page-title">
                 <i class="fas fa-calendar-alt"></i> Booking List
             </h1>
+            <?php if (!$isStaff): ?>
             <a href="bookFacilityForm.php" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Booking
             </a>
+            <?php endif; ?>
         </div>
         
         <?php

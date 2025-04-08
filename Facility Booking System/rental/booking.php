@@ -120,8 +120,8 @@ function addNewBookingRecord() {
         $amountDue = 0;
     }
     
-    // Get registration number from form or generate one
-    $regNumber = isset($_POST['regNumber']) ? $_POST['regNumber'] : 'REG' . date('YmdHis');
+    // Generate random 8-digit registration number
+    $regNumber = str_pad(mt_rand(0, 99999999), 8, '0', STR_PAD_LEFT);
     
     // Insert booking record
     $sql = "INSERT INTO booking (Booking_Ref, customerID, DateReserved, Reserved_By, 

@@ -387,8 +387,9 @@ $isStaff = isStaff();
                                 echo '<td>$' . number_format($row['ratePerDay'], 2) . '</td>';
                                 echo '<td><span class="status-badge ' . $statusClass . '">' . $row['status'] . '</span></td>';
                                 
-                                echo '<td class="action-buttons">
-                                        <form method="POST" action="updateFacilityForm.php" style="display:inline;">
+                                echo '<td class="action-buttons">';
+                                if ($isStaff) {
+                                    echo '<form method="POST" action="updateFacilityForm.php" style="display:inline;">
                                             <input type="hidden" name="facilityId" value="' . $row['facilityId'] . '">
                                             <button type="submit" class="btn btn-update">
                                                 <i class="fas fa-edit"></i> Update
@@ -400,8 +401,9 @@ $isStaff = isStaff();
                                             <button type="submit" class="btn btn-delete">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
-                                        </form>
-                                      </td>';
+                                        </form>';
+                                }
+                                echo '</td>';
                             echo '</tr>';
                             $count++;
                         }

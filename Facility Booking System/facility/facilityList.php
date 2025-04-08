@@ -573,6 +573,7 @@ while ($row = mysqli_fetch_assoc($facilityListQry)) {
 
                 <form id="bookingForm" action="../rental/processBooking.php" method="POST">
                     <input type="hidden" id="modalFacilityId" name="facilityID">
+                    <input type="hidden" name="submitBooking" value="1">
                     
                     <div class="form-group">
                         <label for="modalCustomerId">Customer ID:</label>
@@ -633,6 +634,7 @@ while ($row = mysqli_fetch_assoc($facilityListQry)) {
             let currentRatePerDay = 0;
 
             function openBookingModal(facilityId, facilityName, ratePerDay) {
+                console.log("Opening modal for facility:", facilityId); // Debug line
                 document.getElementById('modalFacilityId').value = facilityId;
                 document.getElementById('modalFacilityName').textContent = facilityName;
                 document.getElementById('modalRatePerDay').textContent = ratePerDay;
@@ -640,6 +642,8 @@ while ($row = mysqli_fetch_assoc($facilityListQry)) {
                 
                 // Reset form
                 document.getElementById('bookingForm').reset();
+                // Don't reset the facility ID when resetting the form
+                document.getElementById('modalFacilityId').value = facilityId;
                 document.getElementById('rentalDuration').textContent = '0 days';
                 document.getElementById('totalAmount').textContent = 'RM 0.00';
                 

@@ -250,7 +250,8 @@ if (!empty($selectedCustomer)) {
     <div class="container">
         <div class="header">
             <h1 class="page-title">
-                <i class="fas fa-calendar-alt"></i> Booking List
+                <i class="fas fa-calendar-alt"></i> 
+                <?php echo $isStaff ? 'All Bookings' : 'My Bookings'; ?>
             </h1>
             <?php if (!$isStaff): ?>
             <a href="bookFacilityForm.php" class="btn btn-primary">
@@ -258,6 +259,12 @@ if (!empty($selectedCustomer)) {
             </a>
             <?php endif; ?>
         </div>
+        
+        <?php if (!$isStaff): ?>
+        <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-bottom: 20px;">
+            <i class="fas fa-info-circle"></i> You are viewing your booking history. Only bookings made by you will be displayed.
+        </div>
+        <?php endif; ?>
         
         <?php
         // Display success messages
@@ -538,7 +545,10 @@ if (!empty($selectedCustomer)) {
             </table>
             <?php
         } else {
-            echo "<p>No bookings found.</p>";
+            echo '<div class="alert alert-info" style="background-color: #f8f9fa; color: #383d41; border: 1px solid #d6d8db; margin-top: 20px;">
+                    <i class="fas fa-info-circle"></i> ' . 
+                    ($isStaff ? 'No bookings found matching your search criteria.' : 'You haven\'t made any bookings yet.') .
+                  '</div>';
         }
         ?>
     </div>

@@ -35,17 +35,44 @@ function getListOfBooking($searchQuery = "") {
             JOIN facility f ON b.facilityID = f.facilityID 
             JOIN customer c ON b.customerID = c.customerID";
 
+    // Start conditions array
+    $conditions = array();
+    $params = array();
+    $types = "";
+
+    // If user is not staff, only show their bookings
+    if (!isset($_SESSION['userType']) || $_SESSION['userType'] !== 'staff') {
+        $conditions[] = "b.customerID = ?";
+        $params[] = $_SESSION['customerID'];
+        $types .= "s";
+    }
+
     //Apply search filter if keyword exists
     if (!empty($searchQuery)) {
-        $searchQuery = mysqli_real_escape_string($con, $searchQuery);
-        $sql .= " WHERE f.name LIKE '%$searchQuery%' 
-                  OR c.customerName LIKE '%$searchQuery%'
-                  OR b.Booking_Ref LIKE '%$searchQuery%'";
+        $searchQuery = "%" . $searchQuery . "%";
+        $conditions[] = "(f.name LIKE ? OR c.customerName LIKE ? OR b.Booking_Ref LIKE ?)";
+        $params[] = $searchQuery;
+        $params[] = $searchQuery;
+        $params[] = $searchQuery;
+        $types .= "sss";
+    }
+
+    // Add WHERE clause if there are conditions
+    if (!empty($conditions)) {
+        $sql .= " WHERE " . implode(" AND ", $conditions);
     }
 
     $sql .= " ORDER BY b.DateRent_start DESC";
 
-    return mysqli_query($con, $sql);
+    $stmt = mysqli_prepare($con, $sql);
+    
+    // Bind parameters if there are any
+    if (!empty($params)) {
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+    }
+    
+    mysqli_stmt_execute($stmt);
+    return mysqli_stmt_get_result($stmt);
 }
 
 // Function to add new booking record
@@ -62,18 +89,19 @@ function addNewBookingRecord() {
     $dateReserved = date("Y-m-d"); // Current date
     $dateRentStart = $_POST['DateRent_start'];
     $dateRentEnd = $_POST['DateRent_end'];
+    $purpose = $_POST['purpose'] ?? '';
     
-    // Check if user is logged in as customer
+    // Get customer ID based on user type
     if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer') {
         $customerId = $_SESSION['customerID'];
         $reservedBy = $_SESSION['username']; // Use the customer's name from session
     } else {
         $customerId = $_POST['customerID'];
-        $reservedBy = $_POST['Reserved_By'];
+        $reservedBy = $_POST['reservedBy'] ?? $customerId;
     }
     
-    // Check if customer exists
-    $customerQuery = "SELECT customerID FROM customer WHERE customerID = ?";
+    // Validate customer exists
+    $customerQuery = "SELECT customerID, customerName FROM customer WHERE customerID = ?";
     $stmt = mysqli_prepare($con, $customerQuery);
     mysqli_stmt_bind_param($stmt, "s", $customerId);
     mysqli_stmt_execute($stmt);
@@ -81,19 +109,38 @@ function addNewBookingRecord() {
     
     if (mysqli_num_rows($customerResult) == 0) {
         // Customer doesn't exist
-        return false;
+        header("Location: bookFacilityForm.php?error=2&message=" . urlencode("Customer ID not found: " . $customerId));
+        exit();
     }
+
+    $customerData = mysqli_fetch_assoc($customerResult);
     
-    // Check if facility exists
-    $facilityQuery = "SELECT facilityID FROM facility WHERE facilityID = ?";
+    // Validate facility exists and is available
+    $facilityQuery = "SELECT f.facilityID, f.name, f.status, f.ratePerDay 
+                     FROM facility f 
+                     WHERE f.facilityID = ?";
     $stmt = mysqli_prepare($con, $facilityQuery);
     mysqli_stmt_bind_param($stmt, "s", $facilityId);
     mysqli_stmt_execute($stmt);
     $facilityResult = mysqli_stmt_get_result($stmt);
     
     if (mysqli_num_rows($facilityResult) == 0) {
-        // Facility doesn't exist
-        return false;
+        header("Location: bookFacilityForm.php?error=3&message=" . urlencode("Facility not found."));
+        exit();
+    }
+
+    $facilityData = mysqli_fetch_assoc($facilityResult);
+    
+    // Check if facility is available
+    if ($facilityData['status'] !== 'Available') {
+        header("Location: bookFacilityForm.php?error=3&message=" . urlencode("Facility is currently not available for booking."));
+        exit();
+    }
+    
+    // Check if facility is already booked for the selected dates
+    if (!checkFacilityAvailability($facilityId, $dateRentStart, $dateRentEnd)) {
+        header("Location: bookFacilityForm.php?error=3&message=" . urlencode("Facility is already booked for the selected dates."));
+        exit();
     }
     
     // Calculate rental period
@@ -101,39 +148,26 @@ function addNewBookingRecord() {
     $end = new DateTime($dateRentEnd);
     $rentalPeriod = $end->diff($start)->days + 1;
     
-    // Generate booking reference (CustomerID + FacilityID + Date)
-    $bookingRef = $customerId . $facilityId . date('Ymd');
-    
-    // Get facility rate and calculate amount
-    $rateQuery = "SELECT ratePerDay FROM facility WHERE facilityID = ?";
-    $stmt = mysqli_prepare($con, $rateQuery);
-    mysqli_stmt_bind_param($stmt, "s", $facilityId);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $facility = mysqli_fetch_assoc($result);
-    
-    // Check if facility exists and has a rate
-    if ($facility && isset($facility['ratePerDay'])) {
-        $amountDue = $facility['ratePerDay'] * $rentalPeriod;
-    } else {
-        // Default amount if facility not found or rate not set
-        $amountDue = 0;
-    }
+    // Calculate total amount using the rate from facilityData
+    $totalAmount = $facilityData['ratePerDay'] * $rentalPeriod;
     
     // Generate random 8-digit registration number
     $regNumber = str_pad(mt_rand(0, 99999999), 8, '0', STR_PAD_LEFT);
     
+    // Generate unique booking reference (current timestamp + random 4 digits)
+    $bookingRef = date('YmdHis') . str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+    
     // Insert booking record
     $sql = "INSERT INTO booking (Booking_Ref, customerID, DateReserved, Reserved_By, 
                                 DateRent_start, DateRent_end, RentalPeriod, facilityID, 
-                                regNumber, Paid, bookingStatus) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                regNumber, Paid, bookingStatus, purpose, Total_Amount) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $paid = 0; // Default to unpaid
     $status = 'Pending'; // Default status
     
     $stmt = mysqli_prepare($con, $sql);
-    mysqli_stmt_bind_param($stmt, "sssssssssss", 
+    mysqli_stmt_bind_param($stmt, "ssssssisssssd", 
         $bookingRef,
         $customerId,
         $dateReserved,
@@ -144,10 +178,16 @@ function addNewBookingRecord() {
         $facilityId,
         $regNumber,
         $paid,
-        $status
+        $status,
+        $purpose,
+        $totalAmount
     );
     
-    return mysqli_stmt_execute($stmt);
+    if (mysqli_stmt_execute($stmt)) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // Function to get future bookings by customer
@@ -190,20 +230,35 @@ function getListOfPastBookingByCustomer($customerId) {
 function checkFacilityAvailability($facilityId, $startDate, $endDate) {
     global $con;
     
+    // First check if facility exists and is marked as Available
+    $facilityQuery = "SELECT status FROM facility WHERE facilityID = ?";
+    $stmt = mysqli_prepare($con, $facilityQuery);
+    mysqli_stmt_bind_param($stmt, "s", $facilityId);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    $facility = mysqli_fetch_assoc($result);
+
+    if (!$facility || $facility['status'] !== 'Available') {
+        return false;
+    }
+
+    // Then check for any overlapping bookings
     $sql = "SELECT COUNT(*) as bookingCount 
             FROM booking 
             WHERE facilityID = ? 
-            AND ((DateRent_start BETWEEN ? AND ?) 
-            OR (DateRent_end BETWEEN ? AND ?))
-            AND bookingStatus != 'Cancelled'";
+            AND bookingStatus != 'Cancelled'
+            AND (
+                (DateRent_start <= ? AND DateRent_end >= ?) OR
+                (DateRent_start <= ? AND DateRent_end >= ?) OR
+                (DateRent_start >= ? AND DateRent_end <= ?)
+            )";
     
     $stmt = mysqli_prepare($con, $sql);
-    mysqli_stmt_bind_param($stmt, "sssss", 
+    mysqli_stmt_bind_param($stmt, "sssssss", 
         $facilityId, 
-        $startDate, 
-        $endDate,
-        $startDate,
-        $endDate
+        $endDate, $startDate,    // Check if existing booking spans our dates
+        $startDate, $startDate,  // Check if our start date is during existing booking
+        $startDate, $endDate     // Check if our booking spans existing booking
     );
     mysqli_stmt_execute($stmt);
     

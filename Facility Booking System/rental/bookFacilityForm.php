@@ -675,6 +675,11 @@ if (isset($_GET['checkDate'])) {
                 </div>
 
                 <div class="form-group">
+                    <label for="modalReservedBy">Reserved By:</label>
+                    <input type="text" id="modalReservedBy" name="reservedBy" required>
+                </div>
+
+                <div class="form-group">
                     <label for="modalStartDate">Rental Start Date:</label>
                     <input type="text" id="modalStartDate" name="DateRent_start" class="flatpickr" required>
                 </div>
@@ -813,6 +818,56 @@ if (isset($_GET['checkDate'])) {
                 alert('An error occurred while checking customer ID');
             });
         }
+
+        // Add this function to generate booking reference
+        function generateBookingReference() {
+            const datePrefix = new Date().toISOString().slice(0,10).replace(/-/g,'');
+            return 'BK' + datePrefix + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        }
+
+        // Modify the form submission handler
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate required fields
+            const facilityId = document.getElementById('modalFacilityId').value;
+            const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
+            const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
+            const purpose = document.getElementById('modalPurpose').value;
+            
+            if (!facilityId) {
+                alert('Facility ID is required');
+                return;
+            }
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('End date must be after start date');
+                return;
+            }
+            
+            if (!purpose.trim()) {
+                alert('Please enter a purpose for the booking');
+                return;
+            }
+            
+            // Generate booking reference
+            const bookingRef = generateBookingReference();
+            
+            // Create hidden input for booking reference
+            const regNumberInput = document.createElement('input');
+            regNumberInput.type = 'hidden';
+            regNumberInput.name = 'regNumber';
+            regNumberInput.value = bookingRef;
+            this.appendChild(regNumberInput);
+            
+            // Submit the form
+            this.submit();
+        });
     </script>
 </body>
 </html>

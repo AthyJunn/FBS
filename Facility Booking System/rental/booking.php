@@ -7,6 +7,8 @@ if (!$con) {
     die("Connection Error: " . mysqli_connect_error());
 }
 
+$isStaff = isset($_SESSION['userType']) && $_SESSION['userType'] === 'staff';
+
 //Fetch booking list with optional search filter
 function getListOfBooking($searchQuery = "") {
     global $con;

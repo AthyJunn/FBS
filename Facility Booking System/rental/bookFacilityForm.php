@@ -212,34 +212,23 @@
 <body>
     <div class="container">
         <h2><i class="fas fa-calendar-plus"></i> Book Facility</h2>
-        
+
         <?php
         include "booking.php";
 
-        // Display error/success messages
         if (isset($_GET['error'])) {
-            $errorMessage = "";
-            switch ($_GET['error']) {
-                case 1:
-                    $errorMessage = "Failed to create booking. Please try again.";
-                    break;
-                case 2:
-                    $errorMessage = isset($_GET['message']) ? $_GET['message'] : "Customer not found. Please check the customer ID.";
-                    break;
-                case 3:
-                    $errorMessage = isset($_GET['message']) ? $_GET['message'] : "Customer or facility not found. Please check your input.";
-                    break;
-                default:
-                    $errorMessage = "An error occurred. Please try again.";
-                    break;
-            }
-            echo '<div class="alert alert-danger">' . $errorMessage . '</div>';
+            $messages = [
+                1 => "Failed to create booking. Please try again.",
+                2 => $_GET['message'] ?? "Customer not found. Please check the customer ID.",
+                3 => $_GET['message'] ?? "Customer or facility not found. Please check your input."
+            ];
+            echo '<div class="alert alert-danger">' . ($messages[$_GET['error']] ?? "An error occurred. Please try again.") . '</div>';
         }
+
         if (isset($_GET['success'])) {
             echo '<div class="success-message"><i class="fas fa-check-circle"></i> ' . htmlspecialchars($_GET['message']) . '</div>';
         }
 
-        // Add this at the top of the file, after the first PHP tag
         if (isset($_POST['action']) && $_POST['action'] === 'checkCustomer') {
             $customerID = $_POST['customerID'];
             $result = checkCustomerExists($customerID);
@@ -268,22 +257,22 @@
             if (isset($_GET['checkDate'])) {
                 $checkDate = $_GET['checkDate'];
                 $query = "SELECT f.*, 
-                         CASE 
-                            WHEN f.status = 'Unavailable' THEN 'Unavailable'
-                            WHEN COUNT(b.Booking_Ref) > 0 THEN 'Unavailable'
-                            ELSE 'Available' 
-                         END as availability
-                         FROM facility f
-                         LEFT JOIN booking b ON f.facilityID = b.facilityID 
-                         AND ? BETWEEN b.DateRent_start AND b.DateRent_end
-                         AND b.bookingStatus != 'Cancelled'
-                         GROUP BY f.facilityID, f.name, f.category, f.capacity, f.ratePerDay, f.status";
-                
+                            CASE 
+                                WHEN f.status = 'Unavailable' THEN 'Unavailable'
+                                WHEN COUNT(b.Booking_Ref) > 0 THEN 'Unavailable'
+                                ELSE 'Available' 
+                            END as availability
+                        FROM facility f
+                        LEFT JOIN booking b ON f.facilityID = b.facilityID 
+                            AND ? BETWEEN b.DateRent_start AND b.DateRent_end
+                            AND b.bookingStatus != 'Cancelled'
+                        GROUP BY f.facilityID";
+
                 $stmt = mysqli_prepare($con, $query);
                 mysqli_stmt_bind_param($stmt, "s", $checkDate);
                 mysqli_stmt_execute($stmt);
                 $result = mysqli_stmt_get_result($stmt);
-                ?>
+            ?>
                 <div class="facility-list">
                     <table class="w3-table w3-striped w3-bordered">
                         <thead>
@@ -297,40 +286,31 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($facility = mysqli_fetch_assoc($result)) { 
-                                $availabilityClass = strtolower($facility['availability']) === 'available' ? 'w3-text-green' : 'w3-text-red';
-                            ?>
+                            <?php while ($facility = mysqli_fetch_assoc($result)): ?>
+                                <?php $availabilityClass = strtolower($facility['availability']) === 'available' ? 'w3-text-green' : 'w3-text-red'; ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($facility['name'] ?? ''); ?></td>
-                                    <td><?php echo htmlspecialchars($facility['category'] ?? ''); ?></td>
-                                    <td><?php echo htmlspecialchars($facility['capacity'] ?? ''); ?> persons</td>
-                                    <td>RM<?php echo htmlspecialchars($facility['ratePerDay'] ?? ''); ?></td>
-                                    <td class="<?php echo $availabilityClass; ?> w3-bold">
-                                        <?php echo htmlspecialchars($facility['availability'] ?? ''); ?>
-                                    </td>
+                                    <td><?= htmlspecialchars($facility['name']) ?></td>
+                                    <td><?= htmlspecialchars($facility['category']) ?></td>
+                                    <td><?= htmlspecialchars($facility['capacity']) ?> persons</td>
+                                    <td>RM<?= htmlspecialchars($facility['ratePerDay']) ?></td>
+                                    <td class="<?= $availabilityClass ?> w3-bold"><?= htmlspecialchars($facility['availability']) ?></td>
                                     <td>
                                         <?php if ($facility['availability'] === 'Available'): ?>
-                                            <button type="button" onclick="openBookingModal('<?php echo htmlspecialchars($facility['facilityID'] ?? ''); ?>', 
-                                                '<?php echo htmlspecialchars($facility['name'] ?? ''); ?>', 
-                                                '<?php echo htmlspecialchars($facility['ratePerDay'] ?? ''); ?>', 
-                                                '<?php echo htmlspecialchars($checkDate); ?>')" 
-                                                class="w3-button w3-green w3-round-large w3-small">
+                                            <button type="button" onclick="openBookingModal('<?= htmlspecialchars($facility['facilityID']) ?>', '<?= htmlspecialchars($facility['name']) ?>', '<?= htmlspecialchars($facility['ratePerDay']) ?>', '<?= htmlspecialchars($checkDate) ?>')" 
+                                                    class="w3-button w3-green w3-round-large w3-small">
                                                 <i class="fas fa-calendar-plus"></i> Book Now
                                             </button>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
-                            <?php } ?>
+                            <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
-                <?php
-            }
-            ?>
+            <?php } ?>
         </div>
 
         <?php
-        // Get facility details if facilityId is provided
         $facilityDetails = null;
         if (isset($_GET['facilityId'])) {
             $facilityId = $_GET['facilityId'];
@@ -345,34 +325,31 @@
 
         <?php if ($facilityDetails): ?>
         <div class="facility-details">
-            <h3><?php echo htmlspecialchars($facilityDetails['name']); ?></h3>
-            <p><strong>Category:</strong> <?php echo htmlspecialchars($facilityDetails['category']); ?></p>
-            <p><strong>Capacity:</strong> <?php echo htmlspecialchars($facilityDetails['capacity']); ?> persons</p>
-            <p><strong>Rate per Day:</strong> RM<?php echo htmlspecialchars($facilityDetails['ratePerDay']); ?></p>
+            <h3><?= htmlspecialchars($facilityDetails['name']) ?></h3>
+            <p><strong>Category:</strong> <?= htmlspecialchars($facilityDetails['category']) ?></p>
+            <p><strong>Capacity:</strong> <?= htmlspecialchars($facilityDetails['capacity']) ?> persons</p>
+            <p><strong>Rate per Day:</strong> RM<?= htmlspecialchars($facilityDetails['ratePerDay']) ?></p>
         </div>
 
         <form action="processBooking.php" method="POST">
-            <input type="hidden" name="facilityID" value="<?php echo htmlspecialchars($facilityId); ?>">
-            
+            <input type="hidden" name="facilityID" value="<?= htmlspecialchars($facilityId) ?>">
+            <input type="hidden" name="regNumber" value="<?= rand(10000000, 99999999) ?>">
+
             <div class="form-group">
                 <label for="customerID">Customer ID:</label>
                 <div class="input-group">
-                    <?php if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer'): ?>
-                        <input type="text" id="customerID" name="customerID" value="<?php echo htmlspecialchars($_SESSION['customerID']); ?>" readonly>
-                        <button type="button" class="w3-button w3-blue w3-round" style="margin-left: 10px;" disabled>
-                            <i class="fas fa-search"></i> Check
-                        </button>
+                    <?php if ($_SESSION['userType'] === 'customer'): ?>
+                        <input type="text" id="customerID" name="customerID" value="<?= htmlspecialchars($_SESSION['customerID']) ?>" readonly>
+                        <button class="w3-button w3-blue w3-round" disabled><i class="fas fa-search"></i> Check</button>
                     <?php else: ?>
                         <input type="text" id="customerID" name="customerID" required>
-                        <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round" style="margin-left: 10px;">
-                            <i class="fas fa-search"></i> Check
-                        </button>
+                        <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round"><i class="fas fa-search"></i> Check</button>
                     <?php endif; ?>
                 </div>
-                <div id="customerInfo" class="w3-panel w3-pale-blue w3-round" style="display: none; margin-top: 10px;">
+                <div id="customerInfo" class="w3-panel w3-pale-blue w3-round" style="display:none;">
                     <p id="customerDetails"></p>
                 </div>
-                <div id="customerError" class="w3-panel w3-pale-red w3-round" style="display: none; margin-top: 10px;">
+                <div id="customerError" class="w3-panel w3-pale-red w3-round" style="display:none;">
                     <p><i class="fas fa-exclamation-circle"></i> Customer ID not found.</p>
                 </div>
             </div>
@@ -383,21 +360,13 @@
             </div>
 
             <div class="form-group">
-                <label for="regNumber">Registration Number:</label>
-                <input type="text" id="regNumber" name="regNumber" required>
+                <label for="DateRent_start">Rental Start Date:</label>
+                <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required value="<?= htmlspecialchars($_GET['checkDate'] ?? '') ?>">
             </div>
 
-            <div class="date-inputs">
-                <div class="form-group">
-                    <label for="DateRent_start">Rental Start Date:</label>
-                    <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required 
-                           value="<?php echo isset($_GET['checkDate']) ? htmlspecialchars($_GET['checkDate']) : ''; ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="DateRent_end">Rental End Date:</label>
-                    <input type="text" id="DateRent_end" name="DateRent_end" class="flatpickr" required>
-                </div>
+            <div class="form-group">
+                <label for="DateRent_end">Rental End Date:</label>
+                <input type="text" id="DateRent_end" name="DateRent_end" class="flatpickr" required>
             </div>
 
             <div class="form-group">
@@ -406,12 +375,8 @@
             </div>
 
             <div class="form-group">
-                <button type="submit" name="submitBooking" class="btn btn-primary">
-                    <i class="fas fa-save"></i> Submit Booking
-                </button>
-                <button type="button" onclick="window.location.href='bookingListForm.php'" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Cancel
-                </button>
+                <button type="submit" name="submitBooking" class="btn btn-primary"><i class="fas fa-save"></i> Submit Booking</button>
+                <button type="button" onclick="window.location.href='bookingListForm.php'" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</button>
             </div>
         </form>
         <?php else: ?>
@@ -422,181 +387,31 @@
         <?php endif; ?>
     </div>
 
-    <!-- Booking Modal -->
-    <div id="bookingModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeBookingModal()">&times;</span>
-            <h3><i class="fas fa-calendar-plus"></i> Book Facility</h3>
-            
-            <div class="rental-summary">
-                <h4 id="modalFacilityName"></h4>
-                <p id="modalRateDisplay"></p>
-            </div>
-
-            <form id="bookingForm" action="processBooking.php" method="POST" onsubmit="return validateForm()">
-                <input type="hidden" id="modalFacilityId" name="facilityID">
-                <input type="hidden" id="regNumber" name="regNumber">
-                <input type="hidden" id="rentalPeriodInput" name="RentalPeriod">
-                <input type="hidden" name="submitBooking" value="1">
-                
-                <div class="form-group">
-                    <label for="Booking_Ref">Booking Reference:</label>
-                    <input type="text" id="Booking_Ref" name="Booking_Ref" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="reservedBy">Reserved By:</label>
-                    <input type="text" id="reservedBy" name="Reserved_By" required>
-                </div>
-
-                <div class="date-inputs">
-                    <div class="form-group">
-                        <label for="DateRent_start">Rental Start Date:</label>
-                        <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="DateRent_end">Rental End Date:</label>
-                        <input type="text" id="DateRent_end" name="DateRent_end" class="flatpickr" required>
-                    </div>
-                </div>
-
-                <div class="rental-summary">
-                    <p>Rental Period: <span id="rentalPeriod">0</span> days</p>
-                    <p>Registration Number: <span id="displayRegNumber">Will be auto-generated</span></p>
-                </div>
-
-                <div class="form-group">
-                    <button type="submit" class="w3-button w3-green w3-round">
-                        <i class="fas fa-save"></i> Confirm Booking
-                    </button>
-                    <button type="button" onclick="closeBookingModal()" class="w3-button w3-grey w3-round">
-                        <i class="fas fa-times"></i> Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <!-- JavaScript -->
     <script>
-        // Initialize Flatpickr date pickers
         flatpickr(".flatpickr", {
-            enableTime: false,
             dateFormat: "Y-m-d",
             minDate: "today"
         });
 
-        // Calculate rental period and amount due when dates change
-        document.querySelectorAll('.flatpickr').forEach(input => {
-            input.addEventListener('change', calculateRental);
-        });
-
-        function calculateRental() {
-            const startDate = document.getElementById('DateRent_start')?.value;
-            const endDate = document.getElementById('DateRent_end')?.value;
-            
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                
-                // You can add additional logic here to display rental period and calculate amount
-            }
-        }
-
-        let currentFacilityRate = 0;
-
-        function validateForm() {
-            // Update hidden fields before submission
-            const rentalPeriod = document.getElementById('rentalPeriod').textContent;
-            document.getElementById('rentalPeriodInput').value = rentalPeriod;
-
-            // Check if dates are selected
-            const startDate = document.getElementById('DateRent_start').value;
-            const endDate = document.getElementById('DateRent_end').value;
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return false;
-            }
-
-            // Check if booking reference is provided
-            const bookingRef = document.getElementById('Booking_Ref').value;
-            if (!bookingRef) {
-                alert('Please enter a Booking Reference');
-                return false;
-            }
-
-            return true;
-        }
-
-        function generateRegNumber() {
-            return Math.floor(10000000 + Math.random() * 90000000).toString();
-        }
-
-        function openBookingModal(facilityId, facilityName, ratePerDay, checkDate) {
-            document.getElementById('bookingModal').style.display = 'block';
-            document.getElementById('modalFacilityId').value = facilityId;
-            document.getElementById('modalFacilityName').textContent = facilityName;
-            document.getElementById('modalRateDisplay').textContent = 'Rate per Day: RM' + ratePerDay;
-            document.getElementById('DateRent_start').value = checkDate;
-            currentFacilityRate = parseFloat(ratePerDay);
-            
-            // Generate registration number
-            const regNum = generateRegNumber();
-            document.getElementById('regNumber').value = regNum;
-            document.getElementById('displayRegNumber').textContent = regNum;
-            
-            // Initialize date pickers
-            initializeDatePickers();
-            
-            // If user is a customer, auto-fill customer details
-            <?php if (isset($_SESSION['userType']) && $_SESSION['userType'] == 'customer'): ?>
-            document.getElementById('customerID').value = '<?php echo htmlspecialchars($_SESSION['customerID']); ?>';
-            document.getElementById('reservedBy').value = '<?php echo htmlspecialchars($_SESSION['username']); ?>';
-            <?php endif; ?>
-        }
-
-        function closeBookingModal() {
-            document.getElementById('bookingModal').style.display = 'none';
-        }
-
-        function initializeDatePickers() {
-            flatpickr("#DateRent_start", {
-                enableTime: false,
-                dateFormat: "Y-m-d",
-                minDate: "today",
-                onChange: calculateRental
+        function validateCustomer() {
+            const customerID = document.getElementById('customerID').value;
+            fetch('', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({'action': 'checkCustomer', 'customerID': customerID})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    document.getElementById('customerDetails').innerText = 'Customer exists: ' + data.name;
+                    document.getElementById('customerInfo').style.display = 'block';
+                    document.getElementById('customerError').style.display = 'none';
+                } else {
+                    document.getElementById('customerInfo').style.display = 'none';
+                    document.getElementById('customerError').style.display = 'block';
+                }
             });
-
-            flatpickr("#DateRent_end", {
-                enableTime: false,
-                dateFormat: "Y-m-d",
-                minDate: "today",
-                onChange: calculateRental
-            });
-        }
-
-        function calculateRental() {
-            const startDate = document.getElementById('DateRent_start').value;
-            const endDate = document.getElementById('DateRent_end').value;
-            
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                
-                document.getElementById('rentalPeriod').textContent = diffDays;
-            }
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('bookingModal');
-            if (event.target == modal) {
-                closeBookingModal();
-            }
         }
     </script>
 </body>

@@ -12,12 +12,12 @@ $plainPassword = "stafffbs";
 $hashedPassword = password_hash($plainPassword, PASSWORD_DEFAULT);
 
 // Update the staff password
-$query = "UPDATE staff SET staffPass = ? WHERE staffEmail = 'staff@fbsstaff.com'";
+$query = "UPDATE staff SET staffPass = ? WHERE staffEmail = 'gojo@fbsstaff.com'";
 $stmt = mysqli_prepare($con, $query);
 mysqli_stmt_bind_param($stmt, "s", $hashedPassword);
 
 if (mysqli_stmt_execute($stmt)) {
-    echo "Password updated successfully. You can now login with email: staff@fbsstaff.com and password: stafffbs";
+    echo "Password updated successfully. You can now login with email: gojo@fbsstaff.com and password: gojofbs";
 } else {
     echo "Error updating password: " . mysqli_error($con);
 }

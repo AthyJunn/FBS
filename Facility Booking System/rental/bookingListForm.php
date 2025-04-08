@@ -375,23 +375,23 @@ if (!empty($selectedCustomer)) {
             </h2>
             <div class="customer-details">
                 <div class="detail-item">
-                    <span class="detail-label">Customer ID</span>
+                    <span class="detail-label">Customer ID: </span>
                     <span class="detail-value"><?php echo $customerDetails['customerID']; ?></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Name</span>
+                    <span class="detail-label">Name: </span>
                     <span class="detail-value"><?php echo $customerDetails['customerName']; ?></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Contact</span>
+                    <span class="detail-label">Contact: </span>
                     <span class="detail-value"><?php echo $customerDetails['Contact']; ?></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Email</span>
+                    <span class="detail-label">Email: </span>
                     <span class="detail-value"><?php echo $customerDetails['Email']; ?></span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Payment Method</span>
+                    <span class="detail-label">Payment Method: </span>
                     <span class="detail-value"><?php echo $customerDetails['PayMethod']; ?></span>
                 </div>
             </div>

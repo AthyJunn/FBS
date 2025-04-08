@@ -1,27 +1,10 @@
 <?php
 include_once("../login/checkLogin.php");
+include_once("booking.php");
 $isStaff = isStaff();
 
 // Database connection
 $con = mysqli_connect('localhost', 'web2025', 'web2025', 'facilitydb');
-
-// Function to get customers by facility
-function getCustomersByFacility($facilityId) {
-    global $con;
-    
-    $query = "SELECT DISTINCT c.customerID, c.customerName, c.Contact, c.Email 
-              FROM booking b
-              JOIN customer c ON b.customerID = c.customerID
-              WHERE b.facilityID = ?
-              AND b.bookingStatus != 'Cancelled'
-              ORDER BY c.customerName";
-    
-    $stmt = mysqli_prepare($con, $query);
-    mysqli_stmt_bind_param($stmt, "s", $facilityId);
-    mysqli_stmt_execute($stmt);
-    
-    return mysqli_stmt_get_result($stmt);
-}
 
 // Get list of facilities
 $facilitiesQuery = "SELECT facilityID, name FROM facility ORDER BY name";
@@ -240,7 +223,6 @@ if ($isStaff && !empty($selectedFacility)) {
 </head>
 <body>
     <?php
-    include_once("../login/checkLogin.php");
     $isStaff = isStaff();
     ?>
     <div class="container">
@@ -289,6 +271,59 @@ if ($isStaff && !empty($selectedFacility)) {
         }
         ?>
         
+        <?php if ($isStaff): ?>
+        <!-- Facility Filter for Staff -->
+        <div class="search-container" style="margin-bottom: 30px;">
+            <form action="" method="GET" style="width: 100%; display: flex; gap: 10px;">
+                <select name="facility" class="search-input" style="flex: 1;">
+                    <option value="">Select a facility to view customers...</option>
+                    <?php while ($facility = mysqli_fetch_assoc($facilitiesResult)): ?>
+                    <option value="<?php echo $facility['facilityID']; ?>" 
+                            <?php echo $selectedFacility == $facility['facilityID'] ? 'selected' : ''; ?>>
+                        <?php echo $facility['name']; ?>
+                    </option>
+                    <?php endwhile; ?>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> View Customers
+                </button>
+            </form>
+        </div>
+
+        <?php if (!empty($selectedFacility) && mysqli_num_rows($customers) > 0): ?>
+        <!-- Customers List Table -->
+        <div style="margin-bottom: 30px;">
+            <h2 style="color: var(--dark-color); font-size: 1.5rem; margin-bottom: 15px;">
+                <i class="fas fa-users"></i> Customers Using This Facility
+            </h2>
+            <table class="booking-table">
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($customer = mysqli_fetch_assoc($customers)): ?>
+                    <tr>
+                        <td><?php echo $customer['customerID']; ?></td>
+                        <td><?php echo $customer['customerName']; ?></td>
+                        <td><?php echo $customer['Contact']; ?></td>
+                        <td><?php echo $customer['Email']; ?></td>
+                    </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php elseif (!empty($selectedFacility)): ?>
+        <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-bottom: 30px;">
+            <i class="fas fa-info-circle"></i> No customers found for this facility.
+        </div>
+        <?php endif; ?>
+        <?php endif; ?>
+        
         <div class="search-container">
             <form action="" method="GET" style="width: 100%; display: flex; gap: 10px;">
                 <input type="text" name="search" class="search-input" 
@@ -301,8 +336,7 @@ if ($isStaff && !empty($selectedFacility)) {
         </div>
         
         <?php
-        include "booking.php";
-        
+        // Get and display bookings
         $search = isset($_GET['search']) ? $_GET['search'] : "";
         $bookings = getListOfBooking($search);
         

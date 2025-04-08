@@ -9,6 +9,24 @@ if (!$con) {
 
 $isStaff = isset($_SESSION['userType']) && $_SESSION['userType'] === 'staff';
 
+// Function to get customers by facility
+function getCustomersByFacility($facilityId) {
+    global $con;
+    
+    $query = "SELECT DISTINCT c.customerID, c.customerName, c.Contact, c.Email 
+              FROM booking b
+              JOIN customer c ON b.customerID = c.customerID
+              WHERE b.facilityID = ?
+              AND b.bookingStatus != 'Cancelled'
+              ORDER BY c.customerName";
+    
+    $stmt = mysqli_prepare($con, $query);
+    mysqli_stmt_bind_param($stmt, "s", $facilityId);
+    mysqli_stmt_execute($stmt);
+    
+    return mysqli_stmt_get_result($stmt);
+}
+
 //Fetch booking list with optional search filter
 function getListOfBooking($searchQuery = "") {
     global $con;
@@ -255,35 +273,17 @@ function getBookingList($search = "") {
     return mysqli_query($conn, $query);
 }
 
-// Function to get customers by facility
-function getCustomersByFacility($facilityId) {
-    global $con;
-    
-    $query = "SELECT DISTINCT c.customerID, c.customerName, c.Contact, c.Email 
-              FROM booking b
-              JOIN customer c ON b.customerID = c.customerID
-              WHERE b.facilityID = ?
-              AND b.bookingStatus != 'Cancelled'
-              ORDER BY c.customerName";
-    
-    $stmt = mysqli_prepare($con, $query);
-    mysqli_stmt_bind_param($stmt, "s", $facilityId);
-    mysqli_stmt_execute($stmt);
-    
-    return mysqli_stmt_get_result($stmt);
-}
-
 // Function to get bookings by facility
 function getBookingsByFacility($facilityId) {
-    global $conn;
+    global $con;
     
-    $query = "SELECT b.*, c.customerName, c.phoneNo, c.email 
+    $query = "SELECT b.*, c.customerName, c.Contact as phoneNo, c.Email as email 
               FROM booking b 
               JOIN customer c ON b.customerID = c.customerID 
               WHERE b.facilityID = ? 
-              ORDER BY b.rentDate DESC";
+              ORDER BY b.DateReserved DESC";
     
-    $stmt = mysqli_prepare($conn, $query);
+    $stmt = mysqli_prepare($con, $query);
     mysqli_stmt_bind_param($stmt, "s", $facilityId);
     mysqli_stmt_execute($stmt);
     

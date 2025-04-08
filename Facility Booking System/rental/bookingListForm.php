@@ -157,6 +157,27 @@
             color: white;
         }
         
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
         @media (max-width: 1200px) {
             .booking-table {
                 display: block;
@@ -190,6 +211,40 @@
                 <i class="fas fa-plus"></i> New Booking
             </a>
         </div>
+        
+        <?php
+        // Display success messages
+        if (isset($_GET['success'])) {
+            echo '<div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Booking created successfully!
+                  </div>';
+        }
+        
+        if (isset($_GET['statusUpdated'])) {
+            $status = isset($_GET['status']) ? $_GET['status'] : 'updated';
+            echo '<div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Booking status has been ' . $status . ' successfully!
+                  </div>';
+        }
+        
+        if (isset($_GET['statusError'])) {
+            echo '<div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> Failed to update booking status. Please try again.
+                  </div>';
+        }
+        
+        if (isset($_GET['paymentUpdated'])) {
+            echo '<div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> Payment status has been updated successfully!
+                  </div>';
+        }
+        
+        if (isset($_GET['paymentError'])) {
+            echo '<div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle"></i> Failed to update payment status. Please try again.
+                  </div>';
+        }
+        ?>
         
         <div class="search-container">
             <form action="" method="GET" style="width: 100%; display: flex; gap: 10px;">

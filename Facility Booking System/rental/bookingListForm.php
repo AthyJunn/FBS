@@ -464,7 +464,7 @@ if (!empty($selectedCustomer)) {
                         <th>Customer</th>
                         <th>Reserved Date</th>
                         <th>Rental Period</th>
-                        <th>Amount Due</th>
+                        <th>Total Amount</th>
                         <th>Payment</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -486,14 +486,19 @@ if (!empty($selectedCustomer)) {
                                 ?>
                             </td>
                             <td><?php echo $booking['RentalPeriod']; ?> days</td>
-                            <td>$<?php 
-                                // Check which column name exists for amount due
-                                if (isset($booking['amountDue'])) {
-                                    echo number_format($booking['amountDue'], 2);
-                                } elseif (isset($booking['Amount_Due'])) {
-                                    echo number_format($booking['Amount_Due'], 2);
+                            <td>RM<?php 
+                                // Calculate amount based on rental period and facility rate
+                                $sql = "SELECT ratePerDay FROM facility WHERE facilityID = ?";
+                                $stmt = mysqli_prepare($con, $sql);
+                                mysqli_stmt_bind_param($stmt, "s", $booking['facilityID']);
+                                mysqli_stmt_execute($stmt);
+                                $result = mysqli_stmt_get_result($stmt);
+                                $facility = mysqli_fetch_assoc($result);
+                                
+                                if ($facility && isset($facility['ratePerDay'])) {
+                                    $totalAmount = $facility['ratePerDay'] * $booking['RentalPeriod'];
+                                    echo number_format($totalAmount, 2);
                                 } else {
-                                    // Calculate amount based on rental period and facility rate if available
                                     echo "N/A";
                                 }
                             ?></td>

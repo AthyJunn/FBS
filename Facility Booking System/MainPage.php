@@ -1,4 +1,19 @@
 <!DOCTYPE html>
+<?php
+// Include the checkLogin.php file
+include_once("login/checkLogin.php");
+
+// Check if user is logged in
+if (!isLoggedIn()) {
+    // Redirect to login page if not logged in
+    header("Location: index.php");
+    exit();
+}
+
+// Get user type
+$isStaff = isStaff();
+$userType = getUserType();
+?>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
@@ -323,30 +338,34 @@
                             <i class="fas fa-chevron-down" style="margin-left: 5px; font-size: 0.8rem;"></i>
                         </a>
                         <div class="dropdown-content">
-                            <a href="facility/facilityList.php" target="iframeStaff">
+                            <a href="facility/facilityList.php" target="iframeContent">
                                 <i class="fas fa-list"></i> View Facility List
                             </a>
-                            <a href="facility/facilityInfoForm.php" target="iframeStaff">
+                            <?php if ($isStaff): ?>
+                            <a href="facility/facilityInfoForm.php" target="iframeContent">
                                 <i class="fas fa-plus-circle"></i> Add New Facility
                             </a>
+                            <?php endif; ?>
                         </div>
                     </li>
                     
-                    <!-- Customer Information Dropdown -->
+                    <?php if ($isStaff): ?>
+                    <!-- Customer Information Dropdown (Staff Only) -->
                     <li class="dropdown">
                         <a href="#">
                             <i class="fas fa-users"></i> Customer Information
                             <i class="fas fa-chevron-down" style="margin-left: 5px; font-size: 0.8rem;"></i>
                         </a>
                         <div class="dropdown-content">
-                            <a href="customer/customerInfoForm.php" target="iframeStaff">
+                            <a href="customer/customerInfoForm.php" target="iframeContent">
                                 <i class="fas fa-user-plus"></i> Add New Customer
                             </a>
-                            <a href="customer/customerList.php" target="iframeStaff">
+                            <a href="customer/customerList.php" target="iframeContent">
                                 <i class="fas fa-list"></i> View Customer List
                             </a>
                         </div>
                     </li>
+                    <?php endif; ?>
 
                     <!-- Booking Information Dropdown -->
                     <li class="dropdown">
@@ -355,7 +374,15 @@
                             <i class="fas fa-chevron-down" style="margin-left: 5px; font-size: 0.8rem;"></i>
                         </a>
                         <div class="dropdown-content">
-                            <a href="rental/bookingListForm.php" target="iframeStaff">
+                            <?php if (!$isStaff): ?>
+                            <a href="rental/bookFacilityForm.php" target="iframeContent">
+                                <i class="fas fa-plus-circle"></i> Book Facility
+                            </a>
+                            <a href="rental/booking.php" target="iframeContent">
+                                <i class="fas fa-check-circle"></i> Check Availability
+                            </a>
+                            <?php endif; ?>
+                            <a href="rental/bookingListForm.php" target="iframeContent">
                                 <i class="fas fa-list"></i> View Booking List
                             </a>
                         </div>
@@ -368,6 +395,7 @@
         <div class="container">
             <!-- Dashboard Cards -->
             <div class="dashboard">
+                <!-- Facilities Card -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-icon">
@@ -377,23 +405,27 @@
                     </div>
                     <div class="card-content">
                         <p>Manage your facility information, add new facilities, or update existing ones.</p>
-                        <a href="facility/facilityList.php" class="btn" target="iframeStaff">View Facilities</a>
+                        <a href="facility/facilityList.php" class="btn" target="iframeContent">View Facilities</a>
                     </div>
                 </div>
                 
+                <?php if ($isStaff): ?>
+                <!-- Customer Card (Staff Only) -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <h3 class="card-title">Customer</h3>
+                        <h3 class="card-title">Customers</h3>
                     </div>
                     <div class="card-content">
-                        <p>Manage customer information, add new customer, or view the customer list.</p>
-                        <a href="customer/customerList.php" class="btn" target="iframeStaff">View customer</a>
+                        <p>Manage customer information, add new customers, or view the customer list.</p>
+                        <a href="customer/customerList.php" class="btn" target="iframeContent">View Customers</a>
                     </div>
                 </div>
+                <?php endif; ?>
                 
+                <!-- Bookings Card -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-icon">
@@ -402,15 +434,19 @@
                         <h3 class="card-title">Bookings</h3>
                     </div>
                     <div class="card-content">
-                        <p>View and manage facility bookings, check availability, and process reservations.</p>
-                        <a href="rental/bookingListForm.php" class="btn" target="iframeStaff">View Bookings</a>
+                        <p>View and manage facility bookings<?php echo !$isStaff ? ', make new bookings, or check availability' : ''; ?>.</p>
+                        <?php if (!$isStaff): ?>
+                        <a href="rental/bookFacilityForm.php" class="btn" target="iframeContent">Book Facility</a>
+                        <?php else: ?>
+                        <a href="rental/bookingListForm.php" class="btn" target="iframeContent">View Bookings</a>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
             
             <!-- Iframe Container -->
             <div class="iframe-container">
-                <iframe src="facility/facilityList.php" name="iframeStaff"></iframe>
+                <iframe src="facility/facilityList.php" name="iframeContent"></iframe>
             </div>
         </div>
         

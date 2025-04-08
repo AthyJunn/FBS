@@ -58,14 +58,11 @@ function addCustomer() {
     $customerName = $_POST['customerName'];
     $Email = $_POST['Email'];
     $Contact = $_POST['Contact'];
-    $Address = $_POST['Address'];
-    $State = $_POST['State'];
-    $PostCode = $_POST['PostCode'];
     $PayMethod = $_POST['PayMethod'];
-    $Sex = $_POST['Sex'];
+    $cPassword = $_POST['cPassword'];
     
-    $sql = "INSERT INTO customer (customerID, customerName, Email, Contact, Address, State, PostCode, PayMethod, Sex) 
-            VALUES ('$customerID', '$customerName', '$Email', '$Contact', '$Address', '$State', '$PostCode', '$PayMethod', '$Sex')";
+    $sql = "INSERT INTO customer (customerID, customerName, Email, Contact, PayMethod, cPassword) 
+            VALUES ('$customerID', '$customerName', '$Email', '$Contact', '$PayMethod', '$cPassword')";
     
     if (mysqli_query($con, $sql)) {
         echo "New customer added successfully.";
@@ -103,16 +100,12 @@ function updateCustomerInfo() {
     
     $customerID = $_POST['customerID'];
     $customerName = $_POST['customerName'];
-    $Address = $_POST['Address'];
-    $State = $_POST['State'];
-    $PostCode = $_POST['PostCode'];
     $Contact = $_POST['Contact'];
     $PayMethod = $_POST['PayMethod'];
     $Email = $_POST['Email'];
-    $Sex = $_POST['Sex'];
     
     $sql = "UPDATE customer
-            SET customerName = '$customerName', Address = '$Address', State = '$State', PostCode = '$PostCode', Contact = '$Contact', PayMethod = '$PayMethod', Email = '$Email', Sex = '$Sex'
+            SET customerName = '$customerName', Contact = '$Contact', PayMethod = '$PayMethod', Email = '$Email'
             WHERE customerID = '$customerID'";
     
     if (mysqli_query($con, $sql)) {

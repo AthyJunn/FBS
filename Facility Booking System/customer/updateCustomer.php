@@ -213,11 +213,7 @@
                 $name = $customerInfo['customerName'];
                 $email = $customerInfo['Email'];
                 $phone = $customerInfo['Contact'];
-                $address = $customerInfo['Address'];
-                $state = $customerInfo['State'];
-                $postCode = $customerInfo['PostCode'];
                 $PayMethod = $customerInfo['PayMethod'];
-                $Sex = $customerInfo['Sex'];
                 ?>
                 
                 <!-- Customer Form -->
@@ -244,21 +240,6 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="Address" class="form-label">Address</label>
-                            <textarea id="Address" name="Address" class="form-textarea" required><?php echo $address; ?></textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="State" class="form-label">State</label>
-                            <input type="text" id="State" name="State" value="<?php echo $state; ?>" class="form-input" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="PostCode" class="form-label">Post Code</label>
-                            <input type="text" id="PostCode" name="PostCode" value="<?php echo $postCode; ?>" class="form-input" required>
-                        </div>
-                        
-                        <div class="form-group">
                             <label for="PayMethod" class="form-label">Payment Method</label>
                             <select id="PayMethod" name="PayMethod" class="form-select" required>
                                 <option value="">Select Payment Method</option>
@@ -269,13 +250,9 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="Sex" class="form-label">Sex</label>
-                            <select id="Sex" name="Sex" class="form-select" required>
-                                <option value="">Select Sex</option>
-                                <option value="Male" <?php echo ($Sex == 'Male') ? 'selected' : ''; ?>>Male</option>
-                                <option value="Female" <?php echo ($Sex == 'Female') ? 'selected' : ''; ?>>Female</option>
-                                <option value="Other" <?php echo ($Sex == 'Other') ? 'selected' : ''; ?>>Other</option>
-                            </select>
+                            <label for="cPassword" class="form-label">Password (leave blank to keep current)</label>
+                            <input type="password" id="cPassword" name="cPassword" class="form-input">
+                            <small>Only fill this if you want to change the password</small>
                         </div>
                         
                         <div class="form-actions">

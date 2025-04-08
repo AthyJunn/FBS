@@ -203,38 +203,18 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="Address" class="form-label">Address</label>
-                        <textarea id="Address" name="Address" class="form-textarea" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="State" class="form-label">State</label>
-                        <input type="text" id="State" name="State" class="form-input" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="PostCode" class="form-label">Post Code</label>
-                        <input type="text" id="PostCode" name="PostCode" class="form-input" required>
-                    </div>
-
-                    <div class="form-group">
                         <label for="PayMethod" class="form-label">Payment Method</label>
                         <select id="PayMethod" name="PayMethod" class="form-select" required>
                             <option value="">Select Payment Method</option>
                             <option value="Cash">Cash</option>
-                            <option value="Card">Credit/Debit Card</option>
-                            <option value="Transfer">Bank Transfer</option>
+                            <option value="Credit/Debit Card">Credit/Debit Card</option>
+                            <option value="Bank Transfer">Bank Bank Transfer</option>
                         </select>
                     </div>
-
+                    
                     <div class="form-group">
-                        <label for="Sex" class="form-label">Sex</label>
-                        <select id="Sex" name="Sex" class="form-select" required>
-                            <option value="">Select Sex</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
+                        <label for="cPassword" class="form-label">Password</label>
+                        <input type="password" id="cPassword" name="cPassword" class="form-input" required>
                     </div>
                     
                     <div class="form-actions">

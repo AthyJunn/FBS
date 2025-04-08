@@ -343,13 +343,9 @@
                             <th>No</th>
                             <th>Customer ID</th>
                             <th>Name</th>
-                            <th>Address</th>
-                            <th>State</th>
-                            <th>Postal Code</th>
                             <th>Contact</th>
                             <th>Payment Method</th>
                             <th>Email</th>
-                            <th>Sex</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -363,13 +359,9 @@
                                 echo '<td>' . $count . '</td>';
                                 echo '<td>' . $row['customerID'] . '</td>';
                                 echo '<td>' . $row['customerName'] . '</td>';
-                                echo '<td>' . $row['Address'] . '</td>';
-                                echo '<td>' . $row['State'] . '</td>';
-                                echo '<td>' . $row['PostCode'] . '</td>';
                                 echo '<td>' . $row['Contact'] . '</td>';
                                 echo '<td>' . $row['PayMethod'] . '</td>';
                                 echo '<td>' . $row['Email'] . '</td>';
-                                echo '<td>' . $row['Sex'] . '</td>';
                                 
                                 echo '<td class="action-buttons">
                                         <form method="POST" action="updateCustomer.php" style="display:inline;">

@@ -49,7 +49,7 @@ function processLogin($email, $password) {
         } else {
             $error = "Invalid password. Please try again.";
         }
-    } elseif (mysqli_num_rows($staffResult) == 1) {
+    } else if (mysqli_num_rows($staffResult) == 1) {
         $user = mysqli_fetch_assoc($staffResult);
         if (password_verify($password, $user['staffPass'])) {
             ensureSessionStarted();
@@ -57,7 +57,7 @@ function processLogin($email, $password) {
             $_SESSION['username'] = $user['staffEmail'];
             $_SESSION['userType'] = $user['userType'];
 
-            header("Location: MainPage.php");
+            header("Location: ../MainPage.php");
             exit();
         } else {
             $error = "Invalid password. Please try again.";

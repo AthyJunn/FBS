@@ -1,3 +1,7 @@
+<?php
+include_once "../login/checkLogin.php";
+$isStaff = isStaff();
+?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -297,9 +301,11 @@
                 <h1 class="page-title">
                     <i class="fas fa-building"></i> Facility List
                 </h1>
+                <?php if ($isStaff): ?>
                 <a href="facilityInfoForm.php" class="add-facility-btn">
                     <i class="fas fa-plus"></i> Add New Facility
                 </a>
+                <?php endif; ?>
             </div>
             
             <!-- Search Form -->

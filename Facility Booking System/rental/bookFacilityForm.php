@@ -287,7 +287,10 @@
                         </thead>
                         <tbody>
                             <?php while ($facility = mysqli_fetch_assoc($result)): ?>
-                                <?php $availabilityClass = strtolower($facility['availability']) === 'available' ? 'w3-text-green' : 'w3-text-red'; ?>
+                                <?php 
+                                $availabilityClass = strtolower($facility['availability']) === 'available' ? 'w3-text-green' : 'w3-text-red';
+                                $checkDateParam = isset($checkDate) ? '&checkDate=' . htmlspecialchars($checkDate) : '';
+                                ?>
                                 <tr>
                                     <td><?= htmlspecialchars($facility['name']) ?></td>
                                     <td><?= htmlspecialchars($facility['category']) ?></td>
@@ -296,10 +299,10 @@
                                     <td class="<?= $availabilityClass ?> w3-bold"><?= htmlspecialchars($facility['availability']) ?></td>
                                     <td>
                                         <?php if ($facility['availability'] === 'Available'): ?>
-                                            <button type="button" onclick="openBookingModal('<?= htmlspecialchars($facility['facilityID']) ?>', '<?= htmlspecialchars($facility['name']) ?>', '<?= htmlspecialchars($facility['ratePerDay']) ?>', '<?= htmlspecialchars($checkDate) ?>')" 
-                                                    class="w3-button w3-green w3-round-large w3-small">
+                                            <a href="?facilityId=<?= htmlspecialchars($facility['facilityID']) ?><?= $checkDateParam ?>" 
+                                               class="w3-button w3-green w3-round-large w3-small">
                                                 <i class="fas fa-calendar-plus"></i> Book Now
-                                            </button>
+                                            </a>
                                         <?php endif; ?>
                                     </td>
                                 </tr>

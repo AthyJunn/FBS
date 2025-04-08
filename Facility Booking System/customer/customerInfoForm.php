@@ -208,13 +208,8 @@
                             <option value="">Select Payment Method</option>
                             <option value="Cash">Cash</option>
                             <option value="Credit/Debit Card">Credit/Debit Card</option>
-                            <option value="Bank Transfer">Bank Bank Transfer</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
                         </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="cPassword" class="form-label">Password</label>
-                        <input type="password" id="cPassword" name="cPassword" class="form-input" required>
                     </div>
                     
                     <div class="form-actions">

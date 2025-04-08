@@ -249,12 +249,6 @@
                             </select>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="cPassword" class="form-label">Password (leave blank to keep current)</label>
-                            <input type="password" id="cPassword" name="cPassword" class="form-input">
-                            <small>Only fill this if you want to change the password</small>
-                        </div>
-                        
                         <div class="form-actions">
                             <a href="customerList.php" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancel

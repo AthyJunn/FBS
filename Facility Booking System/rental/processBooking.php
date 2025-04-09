@@ -23,7 +23,7 @@ if (isset($_POST['action'])){
 // Check if the form was submitted
 if (isset($_POST['submitBooking'])) {
     // Validate required fields
-    $requiredFields = ['facilityID', 'DateRent_start', 'DateRent_end', 'purpose'];
+    $requiredFields = ['DateRent_start', 'DateRent_end', 'purpose'];
     $missingFields = [];
     
     foreach ($requiredFields as $field) {

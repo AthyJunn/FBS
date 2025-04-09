@@ -85,7 +85,7 @@ function addNewBookingRecord() {
     }
     
     // Collect data from post array
-    $facilityId = $_POST['facilityID'];
+    // $facilityId = $_POST['facilityID'];
     $dateReserved = date("Y-m-d"); // Current date
     $dateRentStart = $_POST['DateRent_start'];
     $dateRentEnd = $_POST['DateRent_end'];

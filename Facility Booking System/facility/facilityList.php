@@ -416,6 +416,126 @@ $isStaff = isStaff();
                 </table>
             </div>
         </div>
+
+        <!-- Booking Modal -->
+        <div id="bookingModal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal" onclick="closeBookingModal()">&times;</span>
+                <h3><i class="fas fa-calendar-plus"></i> Book Facility</h3>
+                
+                <div class="facility-summary">
+                    <h4 id="modalFacilityName"></h4>
+                    <p>Rate per Day: RM<span id="modalRatePerDay"></span></p>
+                </div>
+
+                <form id="bookingForm" action="../rental/processBooking.php" method="POST">
+                    <input type="hidden" id="modalFacilityId" name="facilityID">
+                    
+                    <div class="form-group">
+                        <label for="modalCustomerId">Customer ID:</label>
+                        <input type="text" id="modalCustomerId" name="customerID" 
+                               value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modalStartDate">Rental Start Date:</label>
+                        <input type="text" id="modalStartDate" name="DateRent_start" class="flatpickr" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modalEndDate">Rental End Date:</label>
+                        <input type="text" id="modalEndDate" name="DateRent_end" class="flatpickr" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="modalPurpose">Purpose:</label>
+                        <textarea id="modalPurpose" name="purpose" rows="3" required></textarea>
+                    </div>
+
+                    <div class="rental-summary">
+                        <div class="summary-item">
+                            <span>Duration:</span>
+                            <span id="rentalDuration">0 days</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Total Amount:</span>
+                            <span id="totalAmount">RM 0.00</span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="submit" name="submitBooking" class="btn btn-update">
+                            <i class="fas fa-save"></i> Confirm Booking
+                        </button>
+                        <button type="button" onclick="closeBookingModal()" class="btn btn-delete">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            // Initialize date pickers
+            flatpickr(".flatpickr", {
+                dateFormat: "Y-m-d",
+                minDate: "today",
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (instance.element.id === 'modalStartDate' || instance.element.id === 'modalEndDate') {
+                        calculateTotal();
+                    }
+                }
+            });
+
+            let currentRatePerDay = 0;
+
+            function openBookingModal(facilityId, facilityName, ratePerDay) {
+                document.getElementById('modalFacilityId').value = facilityId;
+                document.getElementById('modalFacilityName').textContent = facilityName;
+                document.getElementById('modalRatePerDay').textContent = ratePerDay;
+                currentRatePerDay = parseFloat(ratePerDay);
+                
+                // Reset form
+                document.getElementById('bookingForm').reset();
+                document.getElementById('rentalDuration').textContent = '0 days';
+                document.getElementById('totalAmount').textContent = 'RM 0.00';
+                
+                // Show modal and prevent body scrolling
+                document.getElementById('bookingModal').style.display = 'block';
+                document.body.classList.add('modal-open');
+            }
+
+            function closeBookingModal() {
+                document.getElementById('bookingModal').style.display = 'none';
+                document.body.classList.remove('modal-open');
+            }
+
+            function calculateTotal() {
+                const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
+                const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
+                
+                if (startDate && endDate) {
+                    // Calculate number of days
+                    const diffTime = Math.abs(endDate - startDate);
+                    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    // Update duration display
+                    document.getElementById('rentalDuration').textContent = days + ' day' + (days > 1 ? 's' : '');
+                    
+                    // Calculate and update total amount
+                    const total = currentRatePerDay * days;
+                    document.getElementById('totalAmount').textContent = 'RM ' + total.toFixed(2);
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('bookingModal');
+                if (event.target == modal) {
+                    closeBookingModal();
+                }
+            }
+        </script>
     </body>
 </html>
 

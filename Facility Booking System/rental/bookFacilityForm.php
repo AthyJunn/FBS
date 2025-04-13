@@ -400,7 +400,68 @@ $isStaff = isStaff();
         <?php endif; ?>
     </div>
 
+<<<<<<< HEAD
     <!-- JavaScript -->
+=======
+    <!-- Booking Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeBookingModal()">&times;</span>
+            <h3><i class="fas fa-calendar-plus"></i> Book Facility</h3>
+            
+            <div class="facility-summary">
+                <h4 id="modalFacilityName"></h4>
+                <p>Rate per Day: RM<span id="modalRatePerDay"></span></p>
+            </div>
+
+            <form id="bookingForm" action="processBooking.php" method="POST">
+                <input type="hidden" id="modalFacilityId" name="facilityID">
+                
+                <div class="form-group">
+                    <label for="modalCustomerId">Customer ID:</label>
+                    <input type="text" id="modalCustomerId" name="customerID" 
+                           value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalStartDate">Rental Start Date:</label>
+                    <input type="text" id="modalStartDate" name="DateRent_start" class="flatpickr" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalEndDate">Rental End Date:</label>
+                    <input type="text" id="modalEndDate" name="DateRent_end" class="flatpickr" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalPurpose">Purpose:</label>
+                    <textarea id="modalPurpose" name="purpose" rows="3" required></textarea>
+                </div>
+
+                <div class="rental-summary">
+                    <div class="summary-item">
+                        <span>Duration:</span>
+                        <span id="rentalDuration">0 days</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Amount:</span>
+                        <span id="totalAmount">RM 0.00</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button type="submit" name="submitBooking" class="btn-submit">
+                        <i class="fas fa-save"></i> Confirm Booking
+                    </button>
+                    <button type="button" onclick="closeBookingModal()" class="btn-cancel">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+>>>>>>> parent of 9c19a48 (update booking for customer)
     <script>
         flatpickr(".flatpickr", {
             dateFormat: "Y-m-d",

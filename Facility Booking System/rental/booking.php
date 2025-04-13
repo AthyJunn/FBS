@@ -151,8 +151,8 @@ function addNewBookingRecord() {
     // Calculate total amount using the rate from facilityData
     $totalAmount = $facilityData['ratePerDay'] * $rentalPeriod;
     
-    // Generate random 8-digit registration number
-    $regNumber = str_pad(mt_rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+    // Get registration number from form or generate one
+    $regNumber = isset($_POST['regNumber']) ? $_POST['regNumber'] : 'REG' . date('YmdHis');
     
     // Generate unique booking reference (current timestamp + random 4 digits)
     $bookingRef = date('YmdHis') . str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);

@@ -61,6 +61,16 @@ if (isset($_POST['submitBooking'])) {
         $customerExists = checkCustomerExists($customerId);
         
         if ($customerExists['exists']) {
+            // Generate a unique booking reference
+            $datePrefix = date('Ymd');
+            $query = "SELECT MAX(SUBSTRING(Booking_Ref, -4)) as max_sequence 
+                     FROM booking 
+                     WHERE Booking_Ref LIKE 'BK" . $datePrefix . "%'";
+            $result = mysqli_query($con, $query);
+            $row = mysqli_fetch_assoc($result);
+            $sequence = str_pad((intval($row['max_sequence'] ?? '0') + 1), 4, '0', STR_PAD_LEFT);
+            $_POST['regNumber'] = 'BK' . $datePrefix . $sequence;
+            
             // Add new booking record
             $result = addNewBookingRecord();
             

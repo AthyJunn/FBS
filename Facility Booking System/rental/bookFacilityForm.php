@@ -8,42 +8,6 @@ if (!isLoggedIn()) {
 }
 
 $isStaff = isStaff();
-include "booking.php";
-
-// Initialize variables
-$errorMessage = '';
-$successMessage = '';
-$facilityDetails = null;
-$checkDateParam = '';
-
-// Handle error messages
-if (isset($_GET['error'])) {
-    $messages = [
-        1 => "Failed to create booking. Please try again.",
-        2 => $_GET['message'] ?? "Customer not found. Please check the customer ID.",
-        3 => $_GET['message'] ?? "Customer or facility not found. Please check your input."
-    ];
-    $errorMessage = $messages[$_GET['error']] ?? "An error occurred. Please try again.";
-}
-
-// Handle success messages
-if (isset($_GET['success'])) {
-    $successMessage = $_GET['message'] ?? "Operation completed successfully.";
-}
-
-// Handle customer check AJAX request
-if (isset($_POST['action']) && $_POST['action'] === 'checkCustomer') {
-    $customerID = $_POST['customerID'] ?? '';
-    $result = checkCustomerExists($customerID);
-    header('Content-Type: application/json');
-    echo json_encode($result);
-    exit;
-}
-
-// Prepare check date parameter if available
-if (isset($_GET['checkDate'])) {
-    $checkDateParam = '&checkDate=' . urlencode($_GET['checkDate']);
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,53 +21,42 @@ if (isset($_GET['checkDate'])) {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <style>
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2980b9;
-            --success-color: #2ecc71;
-            --danger-color: #e74c3c;
-            --warning-color: #f39c12;
-            --light-color: #ecf0f1;
-            --dark-color: #2c3e50;
+            --primary-color: #4CAF50;
+            --secondary-color: #45a049;
+            --error-color: #f44336;
+            --success-color: #4CAF50;
+            --text-color: #333;
             --border-color: #ddd;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 20px;
-            background-color: #f5f7fa;
-            color: var(--dark-color);
+            background-color: #f5f5f5;
+            min-height: 100vh;
         }
 
         .container {
-            max-width: 1200px;
+            width: 95%;
             margin: 0 auto;
             background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: var(--dark-color);
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--light-color);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-height: calc(100vh - 40px);
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 15px;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--dark-color);
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-color);
         }
 
         input[type="text"],
@@ -112,375 +65,158 @@ if (isset($_GET['checkDate'])) {
         select,
         textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s ease;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
             box-sizing: border-box;
         }
 
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        input[type="date"]:focus,
-        select:focus,
-        textarea:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary {
+            background-color: #808080;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #666;
         }
 
         .error-message {
-            background-color: #fde8e8;
-            color: var(--danger-color);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: var(--error-color);
+            margin-bottom: 10px;
         }
 
         .success-message {
-            background-color: #def7ec;
             color: var(--success-color);
+            margin-bottom: 10px;
+        }
+
+        .date-inputs {
+            display: flex;
+            gap: 15px;
+        }
+
+        .date-inputs > div {
+            flex: 1;
+        }
+
+        .facility-details {
+            background-color: #f9f9f9;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 4px;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
         }
 
-        .availability-section {
-            background: linear-gradient(to right, #f8f9fa, #ffffff);
-            padding: 25px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .availability-section h3 {
-            color: var(--dark-color);
+        .facility-details h3 {
             margin-top: 0;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            color: var(--primary-color);
         }
 
         .facility-list {
             margin-top: 20px;
-            overflow: hidden;
-            border-radius: 8px;
             border: 1px solid var(--border-color);
+            border-radius: 4px;
+            overflow-x: auto;
         }
 
         .facility-list table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
+            min-width: 800px;
         }
 
-        .facility-list th {
-            background: var(--light-color);
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--dark-color);
-        }
-
-        .facility-list td {
-            padding: 15px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .facility-list tr:hover {
-            background-color: #f8f9fa;
-        }
-
-        .book-now-btn {
+        .btn.action-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            white-space: nowrap;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 10px 20px;
-            background: linear-gradient(135deg, var(--success-color) 0%, #27ae60 100%);
-            color: white;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            gap: 8px;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            gap: 5px;
+            margin: 0;
         }
 
-        .book-now-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .facility-details {
-            background: linear-gradient(to right, #f8f9fa, #ffffff);
-            padding: 25px;
-            border-radius: 12px;
+        .availability-section {
             margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .facility-details h3 {
-            color: var(--primary-color);
-            margin-top: 0;
-            margin-bottom: 20px;
-        }
-
-        .facility-details p {
-            margin: 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .facility-details strong {
-            min-width: 120px;
-            display: inline-block;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-        }
-
-        .input-group input {
-            flex: 1;
-        }
-
-        .input-group button {
-            padding: 12px 20px;
-            background: var(--primary-color);
-            color: white;
-            border: none;
+            padding: 20px;
+            background-color: #f8f9fa;
             border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
-        .input-group button:hover {
-            background: var(--secondary-color);
-        }
-
-        .input-group button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .customer-info {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .w3-panel {
-            margin-top: 10px;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .w3-pale-blue {
-            background-color: #e3f2fd;
-            color: #1565c0;
-        }
-
-        .w3-pale-red {
-            background-color: #ffebee;
-            color: #c62828;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-cancel {
-            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
-            color: var(--dark-color);
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-cancel:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            .input-group button {
-                width: 100%;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            .btn-submit, .btn-cancel {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        /* Update Modal Styles */
         .modal {
             display: none;
             position: fixed;
-            top: 0;
+            z-index: 1000;
             left: 0;
+            top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            animation: fadeIn 0.3s ease;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            background-color: rgba(0,0,0,0.5);
         }
 
         .modal-content {
-            background-color: white;
-            margin: 40px auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
             max-width: 600px;
             position: relative;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            animation: slideIn 0.3s ease;
-        }
-
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .close-modal {
             position: absolute;
             right: 20px;
-            top: 20px;
-            font-size: 24px;
+            top: 10px;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
             color: #666;
-            transition: color 0.3s ease;
         }
 
         .close-modal:hover {
-            color: var(--danger-color);
-        }
-
-        .facility-summary {
-            background: linear-gradient(to right, #f8f9fa, #ffffff);
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        .facility-summary h4 {
-            margin: 0 0 10px 0;
-            color: var(--primary-color);
+            color: #000;
         }
 
         .rental-summary {
             background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
         }
 
-        .summary-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .summary-item:last-child {
-            border-bottom: none;
-            font-weight: bold;
+        .rental-summary h4 {
+            margin-top: 0;
             color: var(--primary-color);
         }
 
-        /* Ensure modal is usable on mobile */
-        @media (max-width: 768px) {
-            .modal {
-                padding: 10px;
-            }
-            
-            .modal-content {
-                margin: 20px auto;
-                padding: 20px;
-                width: 95%;
-            }
-
-            .close-modal {
-                position: sticky;
-                top: 0;
-                right: 0;
-                background: white;
-                padding: 10px;
-                z-index: 1;
-                margin-bottom: 10px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-        }
-
-        body.modal-open {
-            overflow: hidden;
+        .amount-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -488,13 +224,30 @@ if (isset($_GET['checkDate'])) {
     <div class="container">
         <h2><i class="fas fa-calendar-plus"></i> Book Facility</h2>
 
-        <?php if ($errorMessage): ?>
-            <div class="error-message"><?= htmlspecialchars($errorMessage) ?></div>
-        <?php endif; ?>
+        <?php
+        include "booking.php";
 
-        <?php if ($successMessage): ?>
-            <div class="success-message"><i class="fas fa-check-circle"></i> <?= htmlspecialchars($successMessage) ?></div>
-        <?php endif; ?>
+        if (isset($_GET['error'])) {
+            $messages = [
+                1 => "Failed to create booking. Please try again.",
+                2 => $_GET['message'] ?? "Customer not found. Please check the customer ID.",
+                3 => $_GET['message'] ?? "Customer or facility not found. Please check your input."
+            ];
+            echo '<div class="alert alert-danger">' . ($messages[$_GET['error']] ?? "An error occurred. Please try again.") . '</div>';
+        }
+
+        if (isset($_GET['success'])) {
+            echo '<div class="success-message"><i class="fas fa-check-circle"></i> ' . htmlspecialchars($_GET['message']) . '</div>';
+        }
+
+        if (isset($_POST['action']) && $_POST['action'] === 'checkCustomer') {
+            $customerID = $_POST['customerID'];
+            $result = checkCustomerExists($customerID);
+            header('Content-Type: application/json');
+            echo json_encode($result);
+            exit;
+        }
+        ?>
 
         <!-- Availability Check Section -->
         <div class="availability-section">
@@ -540,32 +293,29 @@ if (isset($_GET['checkDate'])) {
                                 <th>Capacity</th>
                                 <th>Rate/Day</th>
                                 <th>Status</th>
-                                <?php if (!$isStaff): ?>
-                                    <th>Action</th>
-                                <?php endif; ?>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php while ($facility = mysqli_fetch_assoc($result)): ?>
                                 <?php 
-                                $availabilityClass = strtolower($facility['availability'] ?? '') === 'available' ? 'w3-text-green' : 'w3-text-red';
+                                $availabilityClass = strtolower($facility['availability']) === 'available' ? 'w3-text-green' : 'w3-text-red';
+                                $checkDateParam = isset($checkDate) ? '&checkDate=' . htmlspecialchars($checkDate) : '';
                                 ?>
                                 <tr>
-                                    <td><?= htmlspecialchars($facility['name'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($facility['category'] ?? '') ?></td>
-                                    <td><?= htmlspecialchars($facility['capacity'] ?? '') ?> persons</td>
-                                    <td>RM<?= htmlspecialchars($facility['ratePerDay'] ?? '') ?></td>
-                                    <td class="<?= $availabilityClass ?> w3-bold"><?= htmlspecialchars($facility['availability'] ?? '') ?></td>
-                                    <?php if (!$isStaff && strtolower($facility['availability'] ?? '') === 'available'): ?>
-                                        <td>
-                                            <button onclick="openBookingModal('<?= htmlspecialchars($facility['facilityID'] ?? '') ?>', 
-                                                '<?= htmlspecialchars($facility['name'] ?? '') ?>', 
-                                                '<?= htmlspecialchars($facility['ratePerDay'] ?? '') ?>')" 
-                                                class="book-now-btn">
+                                    <td><?= htmlspecialchars($facility['name']) ?></td>
+                                    <td><?= htmlspecialchars($facility['category']) ?></td>
+                                    <td><?= htmlspecialchars($facility['capacity']) ?> persons</td>
+                                    <td>RM<?= htmlspecialchars($facility['ratePerDay']) ?></td>
+                                    <td class="<?= $availabilityClass ?> w3-bold"><?= htmlspecialchars($facility['availability']) ?></td>
+                                    <td>
+                                        <?php if ($facility['availability'] === 'Available'): ?>
+                                            <a href="?facilityId=<?= htmlspecialchars($facility['facilityID']) ?><?= $checkDateParam ?>" 
+                                               class="w3-button w3-green w3-round-large w3-small">
                                                 <i class="fas fa-calendar-plus"></i> Book Now
-                                            </button>
-                                        </td>
-                                    <?php endif; ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
                                 </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -574,75 +324,84 @@ if (isset($_GET['checkDate'])) {
             <?php } ?>
         </div>
 
-        <!-- Booking Modal -->
-        <div id="bookingModal" class="modal">
-            <div class="modal-content">
-                <span class="close-modal" onclick="closeBookingModal()">&times;</span>
-                <h3><i class="fas fa-calendar-plus"></i> Book Facility</h3>
-                
-                <div class="facility-summary">
-                    <h4 id="modalFacilityName"></h4>
-                    <p>Rate per Day: RM<span id="modalRatePerDay"></span></p>
-                </div>
+        <?php
+        $facilityDetails = null;
+        if (isset($_GET['facilityId'])) {
+            $facilityId = $_GET['facilityId'];
+            $query = "SELECT * FROM facility WHERE facilityID = ?";
+            $stmt = mysqli_prepare($con, $query);
+            mysqli_stmt_bind_param($stmt, "s", $facilityId);
+            mysqli_stmt_execute($stmt);
+            $result = mysqli_stmt_get_result($stmt);
+            $facilityDetails = mysqli_fetch_assoc($result);
+        }
+        ?>
 
-                <form id="bookingForm" action="processBooking.php" method="POST">
-                    <input type="hidden" id="modalFacilityId" name="facilityID">
-                    <input type="hidden" id="rentalDays" name="rentalDays">
-                    <input type="hidden" id="totalCost" name="totalCost">
-                    
-                    <div class="form-group">
-                        <label for="modalCustomerId">Customer ID:</label>
-                        <input type="text" id="modalCustomerId" name="customerID" 
-                            value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modalReservedBy">Reserved By:</label>
-                        <input type="text" id="modalReservedBy" name="reservedBy" required 
-                            value="<?= htmlspecialchars($_SESSION['username'] ?? '') ?>">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modalStartDate">Rental Start Date:</label>
-                        <input type="text" id="modalStartDate" name="dateRent_start" class="flatpickr-modal" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modalEndDate">Rental End Date:</label>
-                        <input type="text" id="modalEndDate" name="dateRent_end" class="flatpickr-modal" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="modalPurpose">Purpose:</label>
-                        <textarea id="modalPurpose" name="purpose" rows="3" required></textarea>
-                    </div>
-
-                    <div class="rental-summary">
-                        <div class="summary-item">
-                            <span>Duration:</span>
-                            <span id="rentalDuration">0 days</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Total Amount:</span>
-                            <span id="totalAmount">RM 0.00</span>
-                        </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <button type="submit" class="btn-submit">
-                            <i class="fas fa-save"></i> Confirm Booking
-                        </button>
-                        <button type="button" onclick="closeBookingModal()" class="btn-cancel">
-                            <i class="fas fa-times"></i> Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <?php if ($facilityDetails): ?>
+        <div class="facility-details">
+            <h3><?= htmlspecialchars($facilityDetails['name']) ?></h3>
+            <p><strong>Category:</strong> <?= htmlspecialchars($facilityDetails['category']) ?></p>
+            <p><strong>Capacity:</strong> <?= htmlspecialchars($facilityDetails['capacity']) ?> persons</p>
+            <p><strong>Rate per Day:</strong> RM<?= htmlspecialchars($facilityDetails['ratePerDay']) ?></p>
         </div>
+
+        <form action="processBooking.php" method="POST">
+            <input type="hidden" name="facilityID" value="<?= htmlspecialchars($facilityId) ?>">
+            
+            <div class="form-group">
+                <label for="customerID">Customer ID:</label>
+                <div class="input-group">
+                    <?php if (!$isStaff): ?>
+                        <input type="text" id="customerID" name="customerID" value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
+                        <button type="button" class="w3-button w3-blue w3-round" disabled><i class="fas fa-search"></i> Check</button>
+                    <?php else: ?>
+                        <input type="text" id="customerID" name="customerID" required>
+                        <button type="button" onclick="validateCustomer()" class="w3-button w3-blue w3-round"><i class="fas fa-search"></i> Check</button>
+                    <?php endif; ?>
+                </div>
+                <div id="customerInfo" class="w3-panel w3-pale-blue w3-round" style="display:none;">
+                    <p id="customerDetails"></p>
+                </div>
+                <div id="customerError" class="w3-panel w3-pale-red w3-round" style="display:none;">
+                    <p><i class="fas fa-exclamation-circle"></i> Customer ID not found.</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="reservedBy">Reserved By:</label>
+                <input type="text" id="reservedBy" name="reservedBy" required>
+            </div>
+
+            <div class="form-group">
+                <label for="DateRent_start">Rental Start Date:</label>
+                <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required value="<?= htmlspecialchars($_GET['checkDate'] ?? '') ?>">
+            </div>
+
+            <div class="form-group">
+                <label for="DateRent_end">Rental End Date:</label>
+                <input type="text" id="DateRent_end" name="DateRent_end" class="flatpickr" required>
+            </div>
+
+            <div class="form-group">
+                <label for="purpose">Purpose:</label>
+                <textarea id="purpose" name="purpose" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" name="submitBooking" class="btn btn-primary"><i class="fas fa-save"></i> Submit Booking</button>
+                <button type="button" onclick="window.location.href='bookingListForm.php'" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+            </div>
+        </form>
+        <?php else: ?>
+            <div class="availability-section">
+                <h3><i class="fas fa-info-circle"></i> Facility Booking</h3>
+                <p>Please check facility availability using the form above to proceed with booking.</p>
+            </div>
+        <?php endif; ?>
     </div>
 
+    <!-- JavaScript -->
     <script>
-        // Initialize date pickers
         flatpickr(".flatpickr", {
             dateFormat: "Y-m-d",
             minDate: "today"
@@ -650,111 +409,28 @@ if (isset($_GET['checkDate'])) {
 
         flatpickr(".flatpickr-modal", {
             dateFormat: "Y-m-d",
-            minDate: "today",
-            onChange: function(selectedDates, dateStr, instance) {
-                if (instance.element.id === 'modalStartDate' || instance.element.id === 'modalEndDate') {
-                    calculateTotal();
+            minDate: "today"
+        });
+
+        function validateCustomer() {
+            const customerID = document.getElementById('customerID').value;
+            fetch('', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({'action': 'checkCustomer', 'customerID': customerID})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.exists) {
+                    document.getElementById('customerDetails').innerText = 'Customer exists: ' + data.name;
+                    document.getElementById('customerInfo').style.display = 'block';
+                    document.getElementById('customerError').style.display = 'none';
+                } else {
+                    document.getElementById('customerInfo').style.display = 'none';
+                    document.getElementById('customerError').style.display = 'block';
                 }
-            }
-        });
-
-        let currentRatePerDay = 0;
-
-        function openBookingModal(facilityId, facilityName, ratePerDay) {
-            document.getElementById('modalFacilityId').value = facilityId;
-            document.getElementById('modalFacilityName').textContent = facilityName;
-            document.getElementById('modalRatePerDay').textContent = ratePerDay;
-            currentRatePerDay = parseFloat(ratePerDay);
-            
-            // Reset form
-            document.getElementById('bookingForm').reset();
-            document.getElementById('rentalDuration').textContent = '0 days';
-            document.getElementById('totalAmount').textContent = 'RM 0.00';
-            
-            // Show modal and prevent body scrolling
-            document.getElementById('bookingModal').style.display = 'block';
-            document.body.classList.add('modal-open');
+            });
         }
-
-        function closeBookingModal() {
-            document.getElementById('bookingModal').style.display = 'none';
-            document.body.classList.remove('modal-open');
-        }
-
-        function calculateTotal() {
-            const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
-            const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
-            
-            if (startDate && endDate) {
-                // Calculate number of days
-                const diffTime = Math.abs(endDate - startDate);
-                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-                
-                // Update duration display
-                document.getElementById('rentalDuration').textContent = days + ' day' + (days > 1 ? 's' : '');
-                
-                // Calculate and update total amount
-                const total = currentRatePerDay * days;
-                document.getElementById('totalAmount').textContent = 'RM ' + total.toFixed(2);
-                
-                // Update hidden fields
-                document.getElementById('rentalDays').value = days;
-                document.getElementById('totalCost').value = total.toFixed(2);
-            }
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('bookingModal');
-            if (event.target == modal) {
-                closeBookingModal();
-            }
-        }
-
-        // Add this function to generate booking reference
-        function generateBookingReference() {
-            const datePrefix = new Date().toISOString().slice(0,10).replace(/-/g,'');
-            return 'BK' + datePrefix + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        }
-
-        // Modify the form submission handler
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            
-            const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
-            const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
-            const purpose = document.getElementById('modalPurpose').value;
-            
-            
-            if (!startDate || !endDate) {
-                alert('Please select both start and end dates');
-                return;
-            }
-            
-            if (startDate > endDate) {
-                alert('End date must be after start date');
-                return;
-            }
-            
-            if (!purpose.trim()) {
-                alert('Please enter a purpose for the booking');
-                return;
-            }
-            
-            // Generate booking reference
-            const bookingRef = generateBookingReference();
-            
-            // Create hidden input for booking reference
-            const regNumberInput = document.createElement('input');
-            regNumberInput.type = 'hidden';
-            regNumberInput.name = 'regNumber';
-            regNumberInput.value = bookingRef;
-            this.appendChild(regNumberInput);
-            
-            // Submit the form
-            this.submit();
-        });
     </script>
 </body>
 </html>

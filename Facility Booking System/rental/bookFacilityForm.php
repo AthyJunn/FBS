@@ -407,11 +407,14 @@ $isStaff = isStaff();
             minDate: "today"
         });
 
+<<<<<<< HEAD
         flatpickr(".flatpickr-modal", {
             dateFormat: "Y-m-d",
             minDate: "today"
         });
 
+=======
+>>>>>>> parent of 8d0544e (fix book now)
         function validateCustomer() {
             const customerID = document.getElementById('customerID').value;
             fetch('', {

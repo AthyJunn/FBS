@@ -151,11 +151,16 @@ function addNewBookingRecord() {
     // Calculate total amount using the rate from facilityData
     $totalAmount = $facilityData['ratePerDay'] * $rentalPeriod;
     
+    // Check if facility exists and has a rate
+    if ($facility && isset($facility['ratePerDay'])) {
+        $amountDue = $facility['ratePerDay'] * $rentalPeriod;
+    } else {
+        // Default amount if facility not found or rate not set
+        $amountDue = 0;
+    }
+    
     // Get registration number from form or generate one
     $regNumber = isset($_POST['regNumber']) ? $_POST['regNumber'] : 'REG' . date('YmdHis');
-    
-    // Generate unique booking reference (current timestamp + random 4 digits)
-    $bookingRef = date('YmdHis') . str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
     
     // Insert booking record
     $sql = "INSERT INTO booking (Booking_Ref, customerID, DateReserved, Reserved_By, 

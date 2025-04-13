@@ -325,7 +325,10 @@ $isStaff = isStaff();
         </div>
 
         <?php
+<<<<<<< HEAD
         $facilityDetails = null;
+=======
+>>>>>>> parent of eb12da4 (try fix book now)
         if (isset($_GET['facilityId'])) {
             $facilityId = $_GET['facilityId'];
             $query = "SELECT * FROM facility WHERE facilityID = ?";
@@ -339,6 +342,7 @@ $isStaff = isStaff();
 
         <?php if ($facilityDetails): ?>
         <div class="facility-details">
+<<<<<<< HEAD
             <h3><?= htmlspecialchars($facilityDetails['name']) ?></h3>
             <p><strong>Category:</strong> <?= htmlspecialchars($facilityDetails['category']) ?></p>
             <p><strong>Capacity:</strong> <?= htmlspecialchars($facilityDetails['capacity']) ?> persons</p>
@@ -347,6 +351,16 @@ $isStaff = isStaff();
 
         <form action="processBooking.php" method="POST">
             <input type="hidden" name="facilityID" value="<?= htmlspecialchars($facilityId) ?>">
+=======
+            <h3><?= htmlspecialchars($facilityDetails['name'] ?? '') ?></h3>
+            <p><strong>Category:</strong> <?= htmlspecialchars($facilityDetails['category'] ?? '') ?></p>
+            <p><strong>Capacity:</strong> <?= htmlspecialchars($facilityDetails['capacity'] ?? '') ?> persons</p>
+            <p><strong>Rate per Day:</strong> RM<?= htmlspecialchars($facilityDetails['ratePerDay'] ?? '') ?></p>
+        </div>
+
+        <form action="processBooking.php" method="POST">
+            <input type="hidden" name="facilityID" value="<?= htmlspecialchars($facilityId ?? '') ?>">
+>>>>>>> parent of eb12da4 (try fix book now)
             
             <div class="form-group">
                 <label for="customerID">Customer ID:</label>
@@ -374,7 +388,12 @@ $isStaff = isStaff();
 
             <div class="form-group">
                 <label for="DateRent_start">Rental Start Date:</label>
+<<<<<<< HEAD
                 <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required value="<?= htmlspecialchars($_GET['checkDate'] ?? '') ?>">
+=======
+                <input type="text" id="DateRent_start" name="DateRent_start" class="flatpickr" required 
+                       value="<?= htmlspecialchars($_GET['checkDate'] ?? '') ?>">
+>>>>>>> parent of eb12da4 (try fix book now)
             </div>
 
             <div class="form-group">
@@ -387,9 +406,19 @@ $isStaff = isStaff();
                 <textarea id="purpose" name="purpose" rows="3" required></textarea>
             </div>
 
+<<<<<<< HEAD
             <div class="form-group">
                 <button type="submit" name="submitBooking" class="btn btn-primary"><i class="fas fa-save"></i> Submit Booking</button>
                 <button type="button" onclick="window.location.href='bookingListForm.php'" class="btn btn-secondary"><i class="fas fa-times"></i> Cancel</button>
+=======
+            <div class="action-buttons">
+                <button type="submit" name="submitBooking" class="btn-submit">
+                    <i class="fas fa-save"></i> Submit Booking
+                </button>
+                <button type="button" onclick="window.location.href='bookingListForm.php'" class="btn-cancel">
+                    <i class="fas fa-times"></i> Cancel
+                </button>
+>>>>>>> parent of eb12da4 (try fix book now)
             </div>
         </form>
         <?php else: ?>
@@ -401,8 +430,11 @@ $isStaff = isStaff();
     </div>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     <!-- JavaScript -->
 =======
+=======
+>>>>>>> parent of eb12da4 (try fix book now)
     <!-- Booking Modal -->
     <div id="bookingModal" class="modal">
         <div class="modal-content">
@@ -421,6 +453,38 @@ $isStaff = isStaff();
                     <label for="modalCustomerId">Customer ID:</label>
                     <input type="text" id="modalCustomerId" name="customerID" 
                            value="<?= htmlspecialchars($_SESSION['customerID'] ?? '') ?>" readonly>
+                </div>
+
+                <div class="form-group">
+<<<<<<< HEAD
+                    <label for="modalStartDate">Rental Start Date:</label>
+                    <input type="text" id="modalStartDate" name="DateRent_start" class="flatpickr" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalEndDate">Rental End Date:</label>
+                    <input type="text" id="modalEndDate" name="DateRent_end" class="flatpickr" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="modalPurpose">Purpose:</label>
+                    <textarea id="modalPurpose" name="purpose" rows="3" required></textarea>
+                </div>
+
+                <div class="rental-summary">
+                    <div class="summary-item">
+                        <span>Duration:</span>
+                        <span id="rentalDuration">0 days</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Total Amount:</span>
+                        <span id="totalAmount">RM 0.00</span>
+                    </div>
+                </div>
+
+=======
+                    <label for="modalReservedBy">Reserved By:</label>
+                    <input type="text" id="modalReservedBy" name="reservedBy" required>
                 </div>
 
                 <div class="form-group">
@@ -449,6 +513,7 @@ $isStaff = isStaff();
                     </div>
                 </div>
 
+>>>>>>> parent of eb12da4 (try fix book now)
                 <div class="action-buttons">
                     <button type="submit" name="submitBooking" class="btn-submit">
                         <i class="fas fa-save"></i> Confirm Booking
@@ -465,6 +530,7 @@ $isStaff = isStaff();
     <script>
         flatpickr(".flatpickr", {
             dateFormat: "Y-m-d",
+<<<<<<< HEAD
             minDate: "today"
         });
 
@@ -492,9 +558,140 @@ $isStaff = isStaff();
                 } else {
                     document.getElementById('customerInfo').style.display = 'none';
                     document.getElementById('customerError').style.display = 'block';
+=======
+            minDate: "today",
+            onChange: function(selectedDates, dateStr, instance) {
+                if (instance.element.id === 'modalStartDate' || instance.element.id === 'modalEndDate') {
+                    calculateTotal();
+>>>>>>> parent of eb12da4 (try fix book now)
                 }
             });
         }
+<<<<<<< HEAD
+=======
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        function calculateTotal() {
+            const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
+            const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
+            
+            if (startDate && endDate) {
+                // Calculate number of days
+                const diffTime = Math.abs(endDate - startDate);
+                const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                
+                // Update duration display
+                document.getElementById('rentalDuration').textContent = days + ' day' + (days > 1 ? 's' : '');
+                
+                // Calculate and update total amount
+                const total = currentRatePerDay * days;
+                document.getElementById('totalAmount').textContent = 'RM ' + total.toFixed(2);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('bookingModal');
+            if (event.target == modal) {
+                closeBookingModal();
+            }
+        }
+
+        // Validate customer ID
+        function validateCustomer() {
+            const customerID = document.getElementById('customerID').value;
+            if (!customerID) {
+                alert('Please enter a Customer ID');
+                return;
+            }
+
+            fetch('', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'action=checkCustomer&customerID=' + encodeURIComponent(customerID)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const customerInfo = document.getElementById('customerInfo');
+                const customerError = document.getElementById('customerError');
+                
+                if (data.exists) {
+                    document.getElementById('customerDetails').textContent = 
+                        'Customer: ' + (data.name || 'No name available');
+                    customerInfo.style.display = 'block';
+                    customerError.style.display = 'none';
+                } else {
+                    customerInfo.style.display = 'none';
+                    customerError.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while checking customer ID');
+            });
+        }
+
+        // Add this function to generate booking reference
+        function generateBookingReference() {
+            const datePrefix = new Date().toISOString().slice(0,10).replace(/-/g,'');
+            return 'BK' + datePrefix + Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+        }
+
+        // Modify the form submission handler
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate required fields
+            const facilityId = document.getElementById('modalFacilityId').value;
+            const startDate = document.getElementById('modalStartDate')._flatpickr.selectedDates[0];
+            const endDate = document.getElementById('modalEndDate')._flatpickr.selectedDates[0];
+            const purpose = document.getElementById('modalPurpose').value;
+            
+            if (!facilityId) {
+                alert('Facility ID is required');
+                return;
+            }
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            if (startDate > endDate) {
+                alert('End date must be after start date');
+                return;
+            }
+            
+            if (!purpose.trim()) {
+                alert('Please enter a purpose for the booking');
+                return;
+            }
+            
+            // Generate booking reference
+            const bookingRef = generateBookingReference();
+            
+            // Create hidden input for booking reference
+            const regNumberInput = document.createElement('input');
+            regNumberInput.type = 'hidden';
+            regNumberInput.name = 'regNumber';
+            regNumberInput.value = bookingRef;
+            this.appendChild(regNumberInput);
+            
+            // Submit the form
+            this.submit();
+        });
+>>>>>>> parent of eb12da4 (try fix book now)
     </script>
 </body>
 </html>

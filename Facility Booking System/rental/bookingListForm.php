@@ -250,7 +250,8 @@ if (!empty($selectedCustomer)) {
     <div class="container">
         <div class="header">
             <h1 class="page-title">
-                <i class="fas fa-calendar-alt"></i> Booking List
+                <i class="fas fa-calendar-alt"></i> 
+                <?php echo $isStaff ? 'All Bookings' : 'My Bookings'; ?>
             </h1>
             <?php if (!$isStaff): ?>
             <a href="bookFacilityForm.php" class="btn btn-primary">
@@ -258,6 +259,12 @@ if (!empty($selectedCustomer)) {
             </a>
             <?php endif; ?>
         </div>
+        
+        <?php if (!$isStaff): ?>
+        <div class="alert alert-info" style="background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; margin-bottom: 20px;">
+            <i class="fas fa-info-circle"></i> You are viewing your booking history. Only bookings made by you will be displayed.
+        </div>
+        <?php endif; ?>
         
         <?php
         // Display success messages
@@ -464,7 +471,7 @@ if (!empty($selectedCustomer)) {
                         <th>Customer</th>
                         <th>Reserved Date</th>
                         <th>Rental Period</th>
-                        <th>Total Amount</th>
+                        <th>Amount Due</th>
                         <th>Payment</th>
                         <th>Status</th>
                         <th>Actions</th>
@@ -486,19 +493,14 @@ if (!empty($selectedCustomer)) {
                                 ?>
                             </td>
                             <td><?php echo $booking['RentalPeriod']; ?> days</td>
-                            <td>RM<?php 
-                                // Calculate amount based on rental period and facility rate
-                                $sql = "SELECT ratePerDay FROM facility WHERE facilityID = ?";
-                                $stmt = mysqli_prepare($con, $sql);
-                                mysqli_stmt_bind_param($stmt, "s", $booking['facilityID']);
-                                mysqli_stmt_execute($stmt);
-                                $result = mysqli_stmt_get_result($stmt);
-                                $facility = mysqli_fetch_assoc($result);
-                                
-                                if ($facility && isset($facility['ratePerDay'])) {
-                                    $totalAmount = $facility['ratePerDay'] * $booking['RentalPeriod'];
-                                    echo number_format($totalAmount, 2);
+                            <td>$<?php 
+                                // Check which column name exists for amount due
+                                if (isset($booking['amountDue'])) {
+                                    echo number_format($booking['amountDue'], 2);
+                                } elseif (isset($booking['Amount_Due'])) {
+                                    echo number_format($booking['Amount_Due'], 2);
                                 } else {
+                                    // Calculate amount based on rental period and facility rate if available
                                     echo "N/A";
                                 }
                             ?></td>
@@ -538,7 +540,10 @@ if (!empty($selectedCustomer)) {
             </table>
             <?php
         } else {
-            echo "<p>No bookings found.</p>";
+            echo '<div class="alert alert-info" style="background-color: #f8f9fa; color: #383d41; border: 1px solid #d6d8db; margin-top: 20px;">
+                    <i class="fas fa-info-circle"></i> ' . 
+                    ($isStaff ? 'No bookings found matching your search criteria.' : 'You haven\'t made any bookings yet.') .
+                  '</div>';
         }
         ?>
     </div>

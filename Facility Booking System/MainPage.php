@@ -378,9 +378,6 @@ $userType = getUserType();
                             <a href="rental/bookFacilityForm.php" target="iframeContent">
                                 <i class="fas fa-plus-circle"></i> Book Facility
                             </a>
-                            <a href="rental/booking.php" target="iframeContent">
-                                <i class="fas fa-check-circle"></i> Check Availability
-                            </a>
                             <?php endif; ?>
                             <a href="rental/bookingListForm.php" target="iframeContent">
                                 <i class="fas fa-list"></i> View Booking List
